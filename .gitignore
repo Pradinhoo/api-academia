@@ -47,3 +47,5 @@ out/
 # Sistema operacional
 .DS_Store
 Thumbs.db
+
+/src/main/resources/application-dev.properties
