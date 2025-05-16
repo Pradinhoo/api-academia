@@ -31,3 +31,19 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Ignora arquivos e pastas do IntelliJ
+.idea/
+
+# Ignora arquivos de build
+out/
+
+# Ignora arquivos compilados
+*.class
+
+# Logs
+*.log
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
