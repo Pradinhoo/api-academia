@@ -96,14 +96,6 @@ _Similar para professores, treinos e exercícios._
 
 Contribuições são bem-vindas! Faça um fork, crie sua branch e envie um pull request.
 
----
-
-## Licença
-
-Projeto sob licença MIT.
-
----
-
 ## Contato
 
 Abra uma issue ou envie mensagem para colaborar ou tirar dúvidas.
