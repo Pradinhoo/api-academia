@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "progresso")
 @Getter
@@ -18,6 +20,7 @@ public class Progresso {
     private Double peso;
     @Column(nullable = false)
     private Double altura;
+    private LocalDate dataHoraRegistro;
     @ManyToOne
     @JoinColumn(name = "id_aluno")
     private Aluno aluno;
@@ -28,5 +31,6 @@ public class Progresso {
         this.peso = dados.peso();
         this.altura = dados.altura();
         this.aluno = aluno;
+        this.dataHoraRegistro = LocalDate.now();
     }
 }

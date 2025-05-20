@@ -2,6 +2,8 @@ package com.api_academia.dto;
 
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDate;
+
 public record ProgressoDTO(
 
         @NotNull (message = "Esse campo é obrigatório")
@@ -11,5 +13,8 @@ public record ProgressoDTO(
         Double altura,
 
         @NotNull (message = "Esse campo é obrigatório")
-        Long idAluno) {
+        Long idAluno,
+
+        @NotNull
+        LocalDate dataHoraRegistro) {
 }

@@ -41,7 +41,7 @@ public class AlunoController {
                 .stream()
                 .map(AlunoDTO::new)
                 .toList();
-        return ResponseEntity.status(HttpStatus.CREATED).body(listaDeAlunos);
+        return ResponseEntity.status(HttpStatus.OK).body(listaDeAlunos);
     }
 
     @PatchMapping("/atualizar_dados/{id}")
@@ -51,9 +51,9 @@ public class AlunoController {
                     if (dados.nome() != null) aluno.setNome(dados.nome());
                     if (dados.email() != null) aluno.setEmail(dados.email());
                     if (dados.telefone() != null) aluno.setTelefone(dados.telefone());
-                    return  ResponseEntity.ok(alunoRepository.save(aluno));
+                    return  ResponseEntity.status(HttpStatus.OK).body(alunoRepository.save(aluno));
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PatchMapping("/atualizar_endereco/{id}")
@@ -74,9 +74,9 @@ public class AlunoController {
 
                     aluno.setEndereco(endereco);
 
-                    return ResponseEntity.ok(alunoRepository.save(aluno));
+                    return ResponseEntity.status(HttpStatus.OK).body(alunoRepository.save(aluno));
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PatchMapping("/desativar/{id}")
@@ -90,7 +90,7 @@ public class AlunoController {
     @GetMapping("/{id}")
     public ResponseEntity<AlunoDTO> localizarAlunoPorID(@PathVariable Long id) {
         return alunoRepository.findById(id)
-                .map(aluno -> ResponseEntity.ok(new AlunoDTO(aluno)))
-                .orElse(ResponseEntity.notFound().build());
+                .map(aluno -> ResponseEntity.status(HttpStatus.OK).body(new AlunoDTO(aluno)))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 }
