@@ -6,14 +6,13 @@ API REST para gerenciamento de academias desenvolvida em Java com Spring Boot. P
 
 ## Tecnologias
 
-- Java 17 (ou versão utilizada)
+- Java 17
 - Spring Boot
 - Spring Data JPA
 - PostgreSQL
-- Maven ou Gradle (conforme projeto)
-- Lombok (opcional)
-- Spring Security (se implementado)
-- Swagger/OpenAPI (se implementado)
+- Maven
+- Spring Security 
+- Swagger/OpenAPI 
 
 ---
 
@@ -32,7 +31,7 @@ API REST para gerenciamento de academias desenvolvida em Java com Spring Boot. P
 
 - Java JDK 17+ instalado
 - PostgreSQL configurado e rodando
-- Maven ou Gradle instalado
+- Maven instalado
 - Git instalado
 
 ### Passos para rodar
