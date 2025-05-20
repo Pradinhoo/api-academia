@@ -14,6 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface AlunoRepository extends JpaRepository<Aluno, Long> {
+
     Aluno findByCpf(String cpf);
 
     @Query("SELECT a FROM Aluno a WHERE a.id = :idAluno AND a.cadastroAtivo = true")

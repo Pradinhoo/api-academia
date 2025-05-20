@@ -3,7 +3,9 @@ package com.api_academia.controller;
 
 import com.api_academia.dto.AlunoDTO;
 import com.api_academia.dto.AtualizaAlunoDTO;
+import com.api_academia.dto.AtualizaEnderecoDTO;
 import com.api_academia.model.Aluno;
+import com.api_academia.model.Endereco;
 import com.api_academia.repository.AlunoRepository;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
@@ -42,15 +44,37 @@ public class AlunoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(listaDeAlunos);
     }
 
-    @PatchMapping("/atualizar/{id}")
+    @PatchMapping("/atualizar_dados/{id}")
     public ResponseEntity<Aluno> atualizarDadosAlunos(@PathVariable Long id, @RequestBody @Valid AtualizaAlunoDTO dados) {
         return alunoRepository.findById(id)
                 .map(aluno -> {
                     if (dados.nome() != null) aluno.setNome(dados.nome());
                     if (dados.email() != null) aluno.setEmail(dados.email());
                     if (dados.telefone() != null) aluno.setTelefone(dados.telefone());
-                    if (dados.cep() != null) aluno.setCep(dados.cep());
                     return  ResponseEntity.ok(alunoRepository.save(aluno));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/atualizar_endereco/{id}")
+    public ResponseEntity<Aluno> atualizarEnderecoAlunos(@PathVariable Long id, @RequestBody @Valid AtualizaEnderecoDTO dados) {
+        return alunoRepository.findById(id)
+                .map(aluno -> {
+                    Endereco endereco = aluno.getEndereco();
+                    if (endereco == null) {
+                        endereco = new Endereco();
+                    }
+
+                    if (dados.logradouro() != null) endereco.setLogradouro(dados.logradouro());
+                    if (dados.numero() != null) endereco.setNumero(dados.numero());
+                    if (dados.complemento() != null) endereco.setComplemento(dados.complemento());
+                    if (dados.cidade() != null) endereco.setCidade(dados.cidade());
+                    if (dados.estado() != null) endereco.setEstado(dados.estado());
+                    if (dados.cep() != null) endereco.setCep(dados.cep());
+
+                    aluno.setEndereco(endereco);
+
+                    return ResponseEntity.ok(alunoRepository.save(aluno));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

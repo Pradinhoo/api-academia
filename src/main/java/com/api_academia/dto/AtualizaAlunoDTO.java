@@ -11,13 +11,10 @@ public record AtualizaAlunoDTO(
         @Email
         String email,
 
-        String telefone,
-
-        @Pattern(regexp = "\\d{8}", message = "Este campo deve conter exatamente 8 dígitos")
-        String cep) {
+        String telefone) {
 
     public AtualizaAlunoDTO(Aluno aluno) {
-        this(aluno.getNome(), aluno.getEmail(), aluno.getTelefone(), aluno.getCep());
+        this(aluno.getNome(), aluno.getEmail(), aluno.getTelefone());
     }
 }
 

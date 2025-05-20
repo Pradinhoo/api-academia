@@ -1,8 +1,11 @@
 package com.api_academia.dto;
 
+import com.api_academia.model.Especializacao;
 import com.api_academia.model.Professor;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 public record ProfessorDTO(
@@ -22,9 +25,16 @@ public record ProfessorDTO(
         String telefone,
 
         @NotBlank (message = "Esse campo é obrigatório")
-        String cref) {
+        String cref,
 
-        public ProfessorDTO(Professor professor) {
-                this(professor.getNome(), professor.getEmail(), professor.getCpf(), professor.getTelefone(), professor.getCref());
+        @NotNull (message = "Esse campo é origatório")
+        @Valid
+        EnderecoDTO endereco,
+
+        @NotNull
+        Especializacao especializacao) {
+
+        public ProfessorDTO(Professor dados) {
+                this(dados.getNome(), dados.getEmail(), dados.getCpf(), dados.getTelefone(), dados.getCref(), new EnderecoDTO(dados.getEndereco()), dados.getEspecializacao());
         }
 }
