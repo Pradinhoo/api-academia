@@ -60,10 +60,6 @@ spring.jpa.show-sql=true
 ```bash
 mvn clean spring-boot:run
 ```
-ou, se usar Gradle:
-```bash
-./gradlew bootRun
-```
 
 5. A API estará disponível em `http://localhost:8080`
 
