@@ -4,12 +4,7 @@ package com.api_academia.controller;
 import com.api_academia.dto.AlunoDTO;
 import com.api_academia.dto.AtualizaAlunoDTO;
 import com.api_academia.dto.AtualizaEnderecoDTO;
-import com.api_academia.model.Aluno;
-import com.api_academia.model.Endereco;
-import com.api_academia.repository.AlunoRepository;
 import com.api_academia.service.AlunoService;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/alunos")
