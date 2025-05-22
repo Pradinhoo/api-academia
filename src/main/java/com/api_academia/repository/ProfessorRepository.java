@@ -18,5 +18,5 @@ public interface ProfessorRepository extends JpaRepository<Professor, Long> {
     @Query("SELECT p FROM Professor p WHERE p.id = :idProfessor AND p.cadastroAtivo = true")
     Optional<Professor> buscaProfessorAtivoPorId(@Param("idProfessor") Long idProfessor);
 
-    Professor findByCpf(String cpf);
+    Optional<Professor> findByCpf(String cpf);
 }
