@@ -88,8 +88,8 @@ public class AlunoService {
         alunoRepository.save(aluno);
     }
 
-    public AlunoDTO localizarAlunoPorID(Long idAluno) {
-        return alunoRepository.findAllById(idAluno)
+    public AlunoDTO localizarAlunoPorId(Long idAluno) {
+        return alunoRepository.findById(idAluno)
                 .map(AlunoDTO::new)
                 .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado!"));
     }

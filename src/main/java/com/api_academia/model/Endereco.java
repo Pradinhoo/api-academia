@@ -1,6 +1,5 @@
 package com.api_academia.model;
 
-import com.api_academia.dto.AtualizaEnderecoDTO;
 import com.api_academia.dto.EnderecoDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
