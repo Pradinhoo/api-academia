@@ -52,6 +52,12 @@ public class AlunoController {
         return ResponseEntity.status(HttpStatus.OK).body("Aluno desativado com sucesso");
     }
 
+    @PatchMapping("/{id}/ativar")
+    public ResponseEntity<String> ativarAluno(@PathVariable Long id) {
+        alunoService.ativarAluno(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Aluno ativado com sucesso");
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<AlunoDTO> localizarAlunoPorID(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(alunoService.localizarAlunoPorID(id));

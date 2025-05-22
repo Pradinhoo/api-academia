@@ -73,11 +73,19 @@ public class AlunoService {
         Aluno aluno = alunoRepository.buscaAlunoAtivoPorId(idAluno)
                 .orElseThrow(() -> new EntityNotFoundException("Erro ao tentar localizar aluno!"));
 
-        if(!aluno.getCadastroAtivo()) {
-            throw new IllegalStateException("Não é possível desativar um aluno desativado");
+        aluno.setCadastroAtivo(false);
+        alunoRepository.save(aluno);
+    }
+
+    public void ativarAluno(Long idAluno) {
+        Aluno aluno = alunoRepository.findById(idAluno)
+                .orElseThrow(() -> new EntityNotFoundException("Erro ao tentar localizar aluno!"));
+
+        if (aluno.getCadastroAtivo()) {
+            throw new IllegalStateException("Não é possível ativar um aluno já ativo");
         }
 
-        aluno.setCadastroAtivo(false);
+        aluno.setCadastroAtivo(true);
         alunoRepository.save(aluno);
     }
 
