@@ -155,7 +155,7 @@ public class AlunoServiceTest {
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
                 () -> service.atualizarEnderecoAluno(id, atualizaEnderecoDTO));
-        assertEquals("Erro ao tentar localizar aluno", ex.getMessage());
+        assertEquals("Erro ao tentar localizar aluno!", ex.getMessage());
         verify(alunoRepository, never()).save(any(Aluno.class));
     }
 
@@ -182,7 +182,7 @@ public class AlunoServiceTest {
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
                 () -> service.ativarAluno(id));
-        assertEquals("Erro ao tentar localizar aluno", ex.getMessage());
+        assertEquals("Erro ao tentar localizar aluno!", ex.getMessage());
         verify(alunoRepository, never()).save(any(Aluno.class));
     }
 
@@ -232,7 +232,12 @@ public class AlunoServiceTest {
         assertEquals(resultado.dataNascimento(), aluno.getDataNascimento());
         assertEquals(resultado.email(), aluno.getEmail());
         assertEquals(resultado.telefone(), aluno.getTelefone());
-        assertEquals(resultado.endereco(), aluno.getEndereco());
+        assertEquals(resultado.endereco().logradouro(), aluno.getEndereco().getLogradouro());
+        assertEquals(resultado.endereco().numero(), aluno.getEndereco().getNumero());
+        assertEquals(resultado.endereco().complemento(), aluno.getEndereco().getComplemento());
+        assertEquals(resultado.endereco().cidade(), aluno.getEndereco().getCidade());
+        assertEquals(resultado.endereco().estado(), aluno.getEndereco().getEstado());
+        assertEquals(resultado.endereco().cep(), aluno.getEndereco().getCep());
         assertEquals(resultado.dataCadastro(), aluno.getDataCadastro());
 
         verify(alunoRepository, times(1)).findById(id);

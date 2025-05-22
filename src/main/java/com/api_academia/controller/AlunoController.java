@@ -54,6 +54,6 @@ public class AlunoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AlunoDTO> localizarAlunoPorID(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.OK).body(alunoService.localizarAlunoPorID(id));
+        return ResponseEntity.status(HttpStatus.OK).body(alunoService.localizarAlunoPorId(id));
     }
 }
