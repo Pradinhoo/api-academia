@@ -3,7 +3,6 @@ package com.api_academia.controller;
 import com.api_academia.dto.AulaPersonalDTO;
 import com.api_academia.service.AulaPersonalService;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

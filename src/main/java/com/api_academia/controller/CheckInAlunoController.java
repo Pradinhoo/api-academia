@@ -20,13 +20,11 @@ public class CheckInAlunoController {
 
     @PostMapping
     public ResponseEntity<String> realizarCheckInAluno(@RequestBody @Valid CheckInAlunoDTO dados) {
-        String mensagem = checkInAlunoService.realizarCheckIn(dados);
-        return ResponseEntity.status(HttpStatus.CREATED).body(mensagem);
+        return ResponseEntity.status(HttpStatus.CREATED).body(checkInAlunoService.realizarCheckIn(dados));
     }
 
     @GetMapping("/frequencia/{idAluno}")
     public ResponseEntity<List<FrequenciaAlunoDTO>> frequenciaDoUltimoMes(@PathVariable Long idAluno) {
-        List<FrequenciaAlunoDTO> listaDeFrequencia = checkInAlunoService.frequenciaCheckIn(idAluno);
-        return ResponseEntity.status(HttpStatus.CREATED).body(listaDeFrequencia);
+        return ResponseEntity.status(HttpStatus.OK).body(checkInAlunoService.frequenciaCheckIn(idAluno));
     }
 }
