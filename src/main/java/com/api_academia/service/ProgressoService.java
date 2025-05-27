@@ -5,6 +5,7 @@ import com.api_academia.model.Aluno;
 import com.api_academia.model.Progresso;
 import com.api_academia.repository.AlunoRepository;
 import com.api_academia.repository.ProgressoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -23,7 +24,7 @@ public class ProgressoService {
 
     public String cadastrarProgressoAluno(Long id, ProgressoDTO dados) {
         Aluno aluno = alunoRepository.buscaAlunoAtivoPorId(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND ,"Aluno não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado"));
 
         progressoRepository.save(new Progresso(dados, aluno));
 
@@ -32,7 +33,7 @@ public class ProgressoService {
 
     public List<ProgressoDTO> listarProgressoAluno(Long id) {
         alunoRepository.buscaAlunoAtivoPorId(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND ,"Aluno não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado"));
         return progressoRepository.listaProgressoAluno(id);
     }
 }
