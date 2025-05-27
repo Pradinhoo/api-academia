@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProfessorService {
@@ -21,9 +20,7 @@ public class ProfessorService {
     private ProfessorRepository professorRepository;
 
     public ProfessorDTO cadastrarProfessor(ProfessorDTO dados) {
-        Optional<Professor> professorCpf = professorRepository.findByCpf(dados.cpf());
-
-        if (professorCpf.isPresent()) {
+        if (professorRepository.findByCpf(dados.cpf()).isPresent()) {
             throw new EntityExistsException("O professor já foi cadastrado anteriormente");
         }
 
@@ -47,7 +44,7 @@ public class ProfessorService {
                     professorRepository.save(professor);
                     return new ProfessorDTO(professor);
                 })
-                .orElseThrow(() -> new EntityNotFoundException("Erro ao tentar localizar o professor"));
+                .orElseThrow(() -> new EntityNotFoundException("Erro ao tentar localizar professor!"));
     }
 
     public ProfessorDTO atualizarEnderecoProfessor(Long idProfessor, AtualizaEnderecoDTO dados) {
@@ -79,7 +76,7 @@ public class ProfessorService {
 
     public void ativarProfessor(Long idProfessor) {
         Professor professor = professorRepository.findById(idProfessor)
-                .orElseThrow(() -> new EntityNotFoundException("Erro ao tentar localizae professor!"));
+                .orElseThrow(() -> new EntityNotFoundException("Erro ao tentar localizar professor!"));
 
         if (professor.getCadastroAtivo()) {
             throw new IllegalStateException("Não é possível ativar um professor já ativo");

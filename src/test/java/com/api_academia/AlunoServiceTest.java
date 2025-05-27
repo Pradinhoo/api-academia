@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,22 +37,26 @@ public class AlunoServiceTest {
     @Test
     void deveCadastrarAlunoComSucesso() {
         EnderecoDTO endereco = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        AlunoDTO alunoDTO = new AlunoDTO("Teste Unitário", "111.222.333-44", "11/22/3333", "email@email.com","1192233-4455", endereco, "11/22/3333");
+        AlunoDTO alunoDTO = new AlunoDTO("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", endereco, "11/22/3333");
         Aluno aluno = new Aluno(alunoDTO);
+        aluno.setId(1L);
 
         when(alunoRepository.findByCpf(alunoDTO.cpf())).thenReturn(Optional.empty());
+        when(alunoRepository.save(any(Aluno.class))).thenReturn(aluno);
+
 
         AlunoDTO resultado = service.cadastrarAluno(alunoDTO);
 
         assertNotNull(resultado);
         assertEquals(alunoDTO.cpf(), resultado.cpf());
         assertEquals(alunoDTO.nome(), resultado.nome());
+
         verify(alunoRepository, times(1)).findByCpf(alunoDTO.cpf());
         verify(alunoRepository, times(1)).save(any(Aluno.class));
     }
 
     @Test
-    void deveRetornarExcecaoQuandoAlunoJaEstiverCadastrado() {
+    void deveLancarExcecaoQuandoAlunoJaEstiverCadastrado() {
         EnderecoDTO endereco = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
         AlunoDTO alunoDTO = new AlunoDTO("Teste Unitário", "111.222.333-44", "11/22/3333", "email@email.com","1192233-4455", endereco, "11/22/3333");
         Aluno aluno = new Aluno(alunoDTO);
@@ -67,7 +72,7 @@ public class AlunoServiceTest {
     }
 
     @Test
-    void deveListarTodosOsAlunoAtivosComSucesso() {
+    void deveListarTodosOsAlunoAtivosComSucessoQuandoExistirAlunos() {
         EnderecoDTO endereco = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
         AlunoDTO alunoDTO = new AlunoDTO("Teste Unitário", "111.222.333-44", "11/22/3333", "email@email.com","1192233-4455", endereco, "11/22/3333");
         Aluno aluno = new Aluno(alunoDTO);
@@ -76,7 +81,21 @@ public class AlunoServiceTest {
 
         List<AlunoDTO> resultado = service.listarTodosOsAlunoAtivos();
 
+        assertNotNull(resultado);
         assertEquals(alunoDTO.cpf(), resultado.get(0).cpf());
+        verify(alunoRepository, times(1)).findAllByCadastroAtivoTrue();
+    }
+
+    @Test
+    void deveTrazerUmaListaVaziaQuandoNaoExistirAlunosAtivados() {
+        Aluno aluno = new Aluno();
+
+        when(alunoRepository.findAllByCadastroAtivoTrue()).thenReturn(Collections.emptyList());
+
+        List<AlunoDTO> resultado = service.listarTodosOsAlunoAtivos();
+
+        assertNotNull(resultado);
+        assertTrue(resultado.isEmpty());
         verify(alunoRepository, times(1)).findAllByCadastroAtivoTrue();
     }
 
@@ -96,9 +115,9 @@ public class AlunoServiceTest {
         AlunoDTO resultado = service.atualizarDadosAluno(id, atualizaAlunoDTO);
 
         assertNotNull(resultado);
-        assertEquals("Aluno Atualizado", resultado.nome());
-        assertEquals("email@email.com", resultado.email());
-        assertEquals("00000000000", resultado.telefone());
+        assertEquals(atualizaAlunoDTO.nome(), resultado.nome());
+        assertEquals(atualizaAlunoDTO.email(), resultado.email());
+        assertEquals(atualizaAlunoDTO.telefone(), resultado.telefone());
 
         verify(alunoRepository, times(1)).findById(id);
         verify(alunoRepository, times(1)).save(any(Aluno.class));
@@ -133,12 +152,12 @@ public class AlunoServiceTest {
         AlunoDTO resultado = service.atualizarEnderecoAluno(id, atualizaEnderecoDTO);
 
         assertNotNull(resultado);
-        assertEquals("logradouroAtualizado", resultado.endereco().logradouro());
-        assertEquals("numeroAtualizado", resultado.endereco().numero());
-        assertEquals("complementoAtualizado", resultado.endereco().complemento());
-        assertEquals("cidadeAtualizada", resultado.endereco().cidade());
-        assertEquals("estadoAtualizado", resultado.endereco().estado());
-        assertEquals("00000000", resultado.endereco().cep());
+        assertEquals(atualizaEnderecoDTO.logradouro(), resultado.endereco().logradouro());
+        assertEquals(atualizaEnderecoDTO.numero(), resultado.endereco().numero());
+        assertEquals(atualizaEnderecoDTO.complemento(), resultado.endereco().complemento());
+        assertEquals(atualizaEnderecoDTO.cidade(), resultado.endereco().cidade());
+        assertEquals(atualizaEnderecoDTO.estado(), resultado.endereco().estado());
+        assertEquals(atualizaEnderecoDTO.cep(), resultado.endereco().cep());
 
         verify(alunoRepository, times(1)).findById(id);
         verify(alunoRepository, times(1)).save(any(Aluno.class));
@@ -176,11 +195,13 @@ public class AlunoServiceTest {
     void deveLancarExcecaoQuandoAlunoNaoForEncontradoAoAtivar() {
         Long id = 1L;
 
-        when(alunoRepository.buscaAlunoAtivoPorId(id)).thenReturn(Optional.empty());
+        when(alunoRepository.findById(id)).thenReturn(Optional.empty());
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
                 () -> service.ativarAluno(id));
         assertEquals("Erro ao tentar localizar aluno!", ex.getMessage());
+
+        verify(alunoRepository, times(1)).findById(id);
         verify(alunoRepository, never()).save(any(Aluno.class));
     }
 

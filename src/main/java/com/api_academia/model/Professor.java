@@ -32,6 +32,7 @@ public class Professor {
     public Professor(ProfessorDTO dados) {
         this.nome = dados.nome();
         this.email = dados.email();
+        this.cpf = dados.cpf();
         this.telefone = dados.telefone();
         this.cref = dados.cref();
         this.endereco = new Endereco(dados.endereco());

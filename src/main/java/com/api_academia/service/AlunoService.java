@@ -23,10 +23,10 @@ public class AlunoService {
 
     public AlunoDTO cadastrarAluno(AlunoDTO dados) {
         if (alunoRepository.findByCpf(dados.cpf()).isPresent()) {
-            throw new EntityExistsException("O aluno já foi cadastrado anteriormente");}
+            throw new EntityExistsException("O aluno já foi cadastrado anteriormente");
+        }
 
-        Aluno aluno = new Aluno(dados);
-        alunoRepository.save(aluno);
+        Aluno aluno = alunoRepository.save(new Aluno(dados));
         return new AlunoDTO(aluno);
     }
 
