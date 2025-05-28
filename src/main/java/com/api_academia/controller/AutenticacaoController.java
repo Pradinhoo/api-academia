@@ -2,6 +2,7 @@ package com.api_academia.controller;
 
 import com.api_academia.dto.AutenticacaoDTO;
 import com.api_academia.dto.TokenDTO;
+import com.api_academia.dto.UsuarioDTO;
 import com.api_academia.model.Usuario;
 import com.api_academia.service.TokenService;
 import jakarta.validation.Valid;
@@ -28,7 +29,7 @@ public class AutenticacaoController {
         var authenticationToken = new UsernamePasswordAuthenticationToken(dados.login(), dados.senha());
         var authentication = authenticationManager.authenticate(authenticationToken);
 
-        var tokenJWT = tokenService.gerarToken((Usuario) authentication.getPrincipal());
+        var tokenJWT = tokenService.gerarToken((UsuarioDTO) authentication.getPrincipal());
         return ResponseEntity.status(HttpStatus.OK).body(new TokenDTO(tokenJWT));
     }
 }
