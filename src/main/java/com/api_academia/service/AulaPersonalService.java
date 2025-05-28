@@ -51,6 +51,10 @@ public class AulaPersonalService {
         }
     }
 
+    public List<AulaPersonalDTO> listarTodasAsAulasFuturas() {
+        return aulaPersonalRepository.listaTodasAsAulasFuturas();
+    }
+
     public List<AulaPersonalDTO> listarAulasFuturasDoAluno(Long idAluno) {
         alunoRepository.buscaAlunoAtivoPorId(idAluno)
                 .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado ou sem cadastro ativo"));

@@ -11,6 +11,9 @@ import java.util.List;
 
 public interface AulaPersonalRepository extends JpaRepository<AulaPersonal, Long> {
 
+    @Query("SELECT a FROM AulaPersonal a WHERE a.dataHoraAula > CURRENT_TIMESTAMP")
+    List<AulaPersonalDTO> listaTodasAsAulasFuturas();
+
     @Query("SELECT a FROM AulaPersonal a WHERE a.professor.id = :idProfessor AND a.dataHoraAula BETWEEN :dataHoraAula AND :dataHoraAulaFim")
     List<AulaPersonalDTO> verificarConflitoProfessor(@Param("idProfessor") Long idProfessor,
                                                   @Param("dataHoraAula") LocalDateTime dataHoraAula,

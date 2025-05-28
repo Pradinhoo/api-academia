@@ -183,6 +183,42 @@ public class AulaPersonalServiceTest {
     }
 
     @Test
+    void deveListarTodasAsAulasFuturasComAulas() {
+        Long idAluno = 1L;
+        Long idProfessor = 1L;
+        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(1);
+        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
+
+        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
+
+        when(aulaPersonalRepository.listaTodasAsAulasFuturas()).thenReturn(List.of(dto));
+
+        List<AulaPersonalDTO> resultado = service.listarTodasAsAulasFuturas();
+
+        assertNotNull(resultado);
+        verify(aulaPersonalRepository, times(1)).listaTodasAsAulasFuturas();
+    }
+
+    @Test
+    void deveListarTodasAsAulasFuturasSemAulas() {
+        Long idAluno = 1L;
+        Long idProfessor = 1L;
+        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(1);
+        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
+
+        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
+
+        when(aulaPersonalRepository.listaTodasAsAulasFuturas()).thenReturn(Collections.emptyList());
+
+        List<AulaPersonalDTO> resultado = service.listarTodasAsAulasFuturas();
+
+        assertNotNull(resultado);
+        assertTrue(resultado.isEmpty());
+
+        verify(aulaPersonalRepository, times(1)).listaTodasAsAulasFuturas();
+    }
+
+    @Test
     void deveListaAsAulasFuturasDoAlunoComSucesso() {
         Long idAluno = 1L;
         Long idProfessor = 1L;

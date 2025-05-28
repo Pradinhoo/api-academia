@@ -35,17 +35,41 @@ public class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(new GrantedAuthority() {
+            @Override
+            public String getAuthority() {
+                return "ROLE_" + tipoUsuario.name();
+            }
+        });
     }
 
     @Override
     public String getPassword() {
-        return "";
+        return this.senha;
     }
 
     @Override
     public String getUsername() {
-        return "";
+        return this.login;
     }
 
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.cadastroAtivo;
+    }
 }

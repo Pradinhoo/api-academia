@@ -1,7 +1,7 @@
 package com.api_academia.model;
 
 public enum TipoUsuario {
-    FUNCIONARIO,
+    ATENDENTE,
     PROFESSOR,
     ALUNO,
     ADMIN
