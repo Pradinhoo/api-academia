@@ -1,6 +1,7 @@
 package com.api_academia.service;
 
 import com.api_academia.dto.UsuarioDTO;
+import com.api_academia.model.Usuario;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,12 +20,12 @@ public class TokenService {
         this.secret = secret;
     }
 
-    public String gerarToken(UsuarioDTO usuario) {
+    public String gerarToken(Usuario usuario) {
         try {
             var algoritmo = Algorithm.HMAC256(secret);
             return JWT.create()
                     .withIssuer("API Academia")
-                    .withSubject(usuario.login())
+                    .withSubject(usuario.getLogin())
                     .withExpiresAt(dataExpiracao())
                     .sign(algoritmo);
         } catch (Exception exception) {
