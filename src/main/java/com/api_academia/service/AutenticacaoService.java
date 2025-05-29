@@ -1,6 +1,5 @@
 package com.api_academia.service;
 
-import com.api_academia.model.Usuario;
 import com.api_academia.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
