@@ -27,8 +27,9 @@ public class ProgressoService {
 
         Double valorImc = calculaIMCAluno(dados.peso(), dados.altura());
         ClassificacaoIMC classificacaoIMC = classificaIMC(valorImc);
+        Double pesoIdeal = calculaPesoIdeal(dados.altura());
 
-        Progresso progresso = new Progresso(dados.peso(), dados.altura(), valorImc, classificacaoIMC, aluno);
+        Progresso progresso = new Progresso(dados.peso(), dados.altura(), valorImc, pesoIdeal, classificacaoIMC, aluno);
         progressoRepository.save(progresso);
 
         return "Progresso gravado com sucesso!";
@@ -56,5 +57,9 @@ public class ProgressoService {
         } else {
             return ClassificacaoIMC.OBESIDADE_GRAVE;
         }
+    }
+
+    public Double calculaPesoIdeal(Double altura) {
+        return 27.5 * (altura * altura);
     }
 }
