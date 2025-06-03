@@ -2,15 +2,14 @@ package com.api_academia.service;
 
 import com.api_academia.dto.ProgressoDTO;
 import com.api_academia.model.Aluno;
+import com.api_academia.model.ClassificacaoIMC;
 import com.api_academia.model.Progresso;
 import com.api_academia.repository.AlunoRepository;
 import com.api_academia.repository.ProgressoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -26,7 +25,11 @@ public class ProgressoService {
         Aluno aluno = alunoRepository.buscaAlunoAtivoPorId(id)
                 .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado"));
 
-        progressoRepository.save(new Progresso(dados, aluno));
+        Double valorImc = calculaIMCAluno(dados.peso(), dados.altura());
+        ClassificacaoIMC classificacaoIMC = classificaIMC(valorImc);
+
+        Progresso progresso = new Progresso(dados.peso(), dados.altura(), valorImc, classificacaoIMC, aluno);
+        progressoRepository.save(progresso);
 
         return "Progresso gravado com sucesso!";
     }
@@ -35,5 +38,23 @@ public class ProgressoService {
         alunoRepository.buscaAlunoAtivoPorId(id)
                 .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado"));
         return progressoRepository.listaProgressoAluno(id);
+    }
+
+    public Double calculaIMCAluno(Double peso, Double altura) {
+        return peso / (altura * altura);
+    }
+
+    public ClassificacaoIMC classificaIMC(Double imc) {
+        if (imc < 18.5) {
+            return ClassificacaoIMC.MAGREZA;
+        } else if (imc < 25) {
+            return ClassificacaoIMC.NORMAL;
+        } else if (imc < 30) {
+            return ClassificacaoIMC.SOBREPESO;
+        } else if (imc < 40) {
+            return ClassificacaoIMC.OBESIDADE;
+        } else {
+            return ClassificacaoIMC.OBESIDADE_GRAVE;
+        }
     }
 }

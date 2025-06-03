@@ -20,7 +20,10 @@ public class Progresso {
     private Double peso;
     @Column(nullable = false)
     private Double altura;
-    private LocalDate dataHoraRegistro;
+    private Double valorIMC;
+    @Enumerated(EnumType.STRING)
+    private ClassificacaoIMC classificacaoIMC;
+    private LocalDate dataRegistro;
     @ManyToOne
     @JoinColumn(name = "id_aluno")
     private Aluno aluno;
@@ -31,6 +34,15 @@ public class Progresso {
         this.peso = dados.peso();
         this.altura = dados.altura();
         this.aluno = aluno;
-        this.dataHoraRegistro = LocalDate.now();
+        this.dataRegistro = LocalDate.now();
+    }
+
+    public Progresso(Double peso, Double altura, Double valorIMC, ClassificacaoIMC classificacaoIMC, Aluno aluno) {
+        this.peso = peso;
+        this.altura = altura;
+        this.valorIMC = valorIMC;
+        this.classificacaoIMC = classificacaoIMC;
+        this.dataRegistro = LocalDate.now();
+        this.aluno = aluno;
     }
 }
