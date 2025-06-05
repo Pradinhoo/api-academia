@@ -1,14 +1,15 @@
 package com.api_academia.model;
 
-import com.api_academia.dto.EnderecoDTO;
+import com.api_academia.dto.AtualizaEnderecoDTO;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
+
 
 
 @Embeddable
-@Getter
-@Setter
+@Getter @NoArgsConstructor @AllArgsConstructor
 public class Endereco {
 
     private String logradouro;
@@ -18,14 +19,12 @@ public class Endereco {
     private String estado;
     private String cep;
 
-    public Endereco() {}
-
-    public Endereco(EnderecoDTO dados) {
-        this.logradouro = dados.logradouro();
-        this.numero = dados.numero();
-        this.complemento = dados.complemento();
-        this.cidade = dados.cidade();
-        this.estado = dados.estado();
-        this.cep = dados.cep();
+    public void atualizarEndereco(AtualizaEnderecoDTO dados) {
+        if (dados.logradouro() != null) this.logradouro = dados.logradouro();
+        if (dados.numero() != null) this.numero = dados.numero();
+        if (dados.complemento() != null) this.complemento = dados.complemento();
+        if (dados.cidade() != null) this.cidade = dados.cidade();
+        if (dados.estado() != null) this.estado = dados.estado();
+        if (dados.cep() != null) this.cep = dados.cep();
     }
 }
