@@ -1,16 +1,15 @@
 package com.api_academia.service.impl;
 
 import com.api_academia.dto.AulaPersonalDTO;
+import com.api_academia.model.Aluno;
 import com.api_academia.model.AulaPersonal;
+import com.api_academia.model.Professor;
 import com.api_academia.repository.AlunoRepository;
 import com.api_academia.repository.AulaPersonalRepository;
 import com.api_academia.repository.ProfessorRepository;
 import com.api_academia.service.AulaPersonalService;
 import com.api_academia.validations.ValidarCadastroAula;
 import jakarta.persistence.EntityNotFoundException;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,12 +33,8 @@ public class AulaPersonalServiceImpl implements AulaPersonalService {
     public String cadastrarAula(AulaPersonalDTO dados) {
 
         validadores.forEach(v -> v.validar(dados));
-
-        var aluno = alunoRepository.buscaAlunoAtivoPorId(dados.idAluno())
-                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado ou não possui cadastro ativo"));
-
-        var professor = professorRepository.buscaProfessorAtivoPorId(dados.idProfessor())
-                .orElseThrow(() -> new EntityNotFoundException("Professor não encontrado ou não possui cadastro ativo"));
+        Aluno aluno = validarAluno(dados.idAluno());
+        Professor professor = validarProfessor(dados.idProfessor());
 
         AulaPersonal aula = new AulaPersonal(dados, aluno, professor);
         aulaPersonalRepository.save(aula);
@@ -51,22 +46,14 @@ public class AulaPersonalServiceImpl implements AulaPersonalService {
     }
 
     public List<AulaPersonalDTO> listarAulasFuturasDoAluno(Long idAluno) {
-        alunoRepository.buscaAlunoAtivoPorId(idAluno)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado ou sem cadastro ativo"));
-
-        LocalDateTime agora = LocalDateTime.now();
-
-        return aulaPersonalRepository.listaAulasMarcadasAlunos(idAluno, agora)
+        validarAluno(idAluno);
+        return aulaPersonalRepository.listaAulasMarcadasAlunos(idAluno, LocalDateTime.now())
                 .stream().toList();
     }
 
     public List<AulaPersonalDTO> listarAulasFuturasDoProfessor(Long idProfessor) {
-        professorRepository.buscaProfessorAtivoPorId(idProfessor)
-                .orElseThrow(() -> new EntityNotFoundException("Professor não encontrado ou sem cadastro ativo"));
-
-        LocalDateTime agora = LocalDateTime.now();
-
-        return aulaPersonalRepository.listaAulasMarcadasProfessores(idProfessor, agora)
+        validarProfessor(idProfessor);
+        return aulaPersonalRepository.listaAulasMarcadasProfessores(idProfessor, LocalDateTime.now())
                 .stream().toList();
     }
 
@@ -80,5 +67,15 @@ public class AulaPersonalServiceImpl implements AulaPersonalService {
 
         aulaPersonalRepository.delete(aula);
         return "Aula deletada com sucesso";
+    }
+
+    private Aluno validarAluno(Long idAluno) {
+        return alunoRepository.buscaAlunoAtivoPorId(idAluno)
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado ou não possui cadastro ativo"));
+    }
+
+    private Professor validarProfessor (Long idProfessor) {
+        return professorRepository.buscaProfessorAtivoPorId(idProfessor)
+                .orElseThrow(() -> new EntityNotFoundException("Professor não encontrado ou não possui cadastro ativo"));
     }
 }
