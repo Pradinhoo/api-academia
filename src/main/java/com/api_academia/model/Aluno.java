@@ -1,16 +1,16 @@
 package com.api_academia.model;
 
-import com.api_academia.dto.AlunoDTO;
+import com.api_academia.dto.AtualizaAlunoDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
 
 @Entity
 @Table(name = "alunos")
-@Getter
-@Setter
+@Getter @Setter @NoArgsConstructor
 public class Aluno {
 
     @Id
@@ -30,16 +30,26 @@ public class Aluno {
     @OneToOne
     private Usuario usuario;
 
-    public Aluno() {}
+    public Aluno(String nome, String cpf, String dataNascimento, String email, String telefone, Endereco endereco) {
+        this.nome = nome;
+        this.cpf = cpf;
+        this.dataNascimento = dataNascimento;
+        this.email = email;
+        this.telefone = telefone;
+        this.endereco = endereco;
+    }
 
-    public Aluno(AlunoDTO dados) {
-        this.nome = dados.nome();
-        this.cpf = dados.cpf();
-        this.dataNascimento = dados.dataNascimento();
-        this.email = dados.email();
-        this.telefone = dados.telefone();
-        this.endereco = new Endereco(dados.endereco());
-        this.dataCadastro = dados.dataCadastro();
+    public void atualizaDadosAluno(AtualizaAlunoDTO dados) {
+        if (dados.nome() != null) this.nome = dados.nome();
+        if (dados.email() != null) this.email = dados.email();
+        if (dados.telefone() != null) this.telefone = dados.telefone();
+    }
+
+    public void ativarAluno() {
         this.cadastroAtivo = true;
+    }
+
+    public void desativarAluno() {
+        this.cadastroAtivo = false;
     }
 }

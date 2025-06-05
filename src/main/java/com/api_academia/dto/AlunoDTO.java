@@ -1,7 +1,6 @@
 package com.api_academia.dto;
 
 import com.api_academia.model.Aluno;
-import com.api_academia.model.Endereco;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

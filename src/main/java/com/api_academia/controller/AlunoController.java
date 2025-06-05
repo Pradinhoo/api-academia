@@ -19,8 +19,12 @@ import java.util.List;
 @PreAuthorize("hasAnyRole('ADMIN', 'ATENDENTE')")
 public class AlunoController {
 
-    @Autowired
-    private AlunoService alunoService;
+
+    private final AlunoService alunoService;
+
+    public AlunoController(AlunoService alunoService) {
+        this.alunoService = alunoService;
+    }
 
     @PostMapping
     public ResponseEntity<AlunoDTO> cadastrarAluno(@RequestBody @Valid AlunoDTO dados) {
