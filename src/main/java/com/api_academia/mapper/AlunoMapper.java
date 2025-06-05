@@ -5,7 +5,7 @@ import com.api_academia.model.Aluno;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {EnderecoMapper.class})
 public interface AlunoMapper {
 
     @Mapping(target = "id", ignore = true)
