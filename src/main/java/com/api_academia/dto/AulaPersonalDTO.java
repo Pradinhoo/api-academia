@@ -19,8 +19,4 @@ public record AulaPersonalDTO(
 
         @NotBlank
         LocalDateTime dataHoraAulaFim) {
-
-        public AulaPersonalDTO(AulaPersonal aula) {
-                this(aula.getAluno().getId(), aula.getProfessor().getId(), aula.getDataHoraAula(), aula.getDataHoraAulaFim());
-        }
 }

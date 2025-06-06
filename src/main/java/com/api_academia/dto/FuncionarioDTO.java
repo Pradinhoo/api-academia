@@ -23,8 +23,4 @@ public record FuncionarioDTO(
         @NotBlank (message = "Esse campo é obrigatório")
         @Valid
         EnderecoDTO endereco) {
-
-        public FuncionarioDTO(Funcionario dados) {
-                this(dados.getNome(), dados.getCpf(), dados.getEmail(), dados.getTelefone(), new EnderecoDTO(dados.getEndereco()));
-        }
 }

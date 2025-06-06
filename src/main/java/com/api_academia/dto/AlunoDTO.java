@@ -1,6 +1,5 @@
 package com.api_academia.dto;
 
-import com.api_academia.model.Aluno;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -33,9 +32,4 @@ public record AlunoDTO(
 
         @NotBlank (message = "Esse campo é obrigatório")
         String dataCadastro) {
-
-        public AlunoDTO(Aluno dados) {
-                this(dados.getNome(), dados.getCpf(), dados.getDataNascimento(), dados.getEmail(), dados.getTelefone(), new EnderecoDTO(dados.getEndereco()), dados.getDataCadastro());
-        }
-
 }

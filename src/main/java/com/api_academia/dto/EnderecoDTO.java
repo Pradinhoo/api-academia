@@ -23,8 +23,4 @@ public record EnderecoDTO(
         @NotBlank (message = "Esse campo é obrigatório")
         @Pattern(regexp = "\\d{8}", message = "O campo CEP deve conter 8 dígitos")
         String cep) {
-
-        public EnderecoDTO(Endereco dados) {
-                this(dados.getLogradouro(), dados.getNumero(), dados.getComplemento(), dados.getCidade(), dados.getEstado(), dados.getCep());
-        }
 }

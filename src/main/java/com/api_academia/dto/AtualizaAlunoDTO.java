@@ -12,9 +12,5 @@ public record AtualizaAlunoDTO(
         String email,
 
         String telefone) {
-
-    public AtualizaAlunoDTO(Aluno aluno) {
-        this(aluno.getNome(), aluno.getEmail(), aluno.getTelefone());
-    }
 }
 

@@ -33,8 +33,4 @@ public record ProfessorDTO(
 
         @NotNull
         Especializacao especializacao) {
-
-        public ProfessorDTO(Professor dados) {
-                this(dados.getNome(), dados.getEmail(), dados.getCpf(), dados.getTelefone(), dados.getCref(), new EnderecoDTO(dados.getEndereco()), dados.getEspecializacao());
-        }
 }

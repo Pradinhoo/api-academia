@@ -11,8 +11,4 @@ public record UsuarioDTO(
         String login,
         @NotNull
         TipoUsuario tipoUsuario) {
-
-    public UsuarioDTO(Usuario dados) {
-        this(dados.getLogin(), dados.getTipoUsuario());
-    }
 }
