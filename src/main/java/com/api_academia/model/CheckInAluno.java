@@ -1,11 +1,14 @@
 package com.api_academia.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "check_in")
+@Getter @NoArgsConstructor
 public class CheckInAluno {
 
     @Id
@@ -16,23 +19,9 @@ public class CheckInAluno {
     private Aluno aluno;
     private LocalDateTime dataHoraCheckIn;
 
-    public CheckInAluno() {}
-
-    public CheckInAluno(Aluno aluno) {
+    public CheckInAluno(Aluno aluno, LocalDateTime dataHoraCheckIn) {
         this.aluno = aluno;
-        this.dataHoraCheckIn = LocalDateTime.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Aluno getAluno() {
-        return aluno;
-    }
-
-    public LocalDateTime getDataHoraCheckIn() {
-        return dataHoraCheckIn;
+        this.dataHoraCheckIn = dataHoraCheckIn;
     }
 }
 

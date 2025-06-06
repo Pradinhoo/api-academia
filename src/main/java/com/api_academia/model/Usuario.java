@@ -2,6 +2,7 @@ package com.api_academia.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,8 +12,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "usuarios")
-@Getter
-@Setter
+@Getter @NoArgsConstructor
 public class Usuario implements UserDetails {
 
     @Id
@@ -23,8 +23,6 @@ public class Usuario implements UserDetails {
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipoUsuario;
     private Boolean cadastroAtivo;
-
-    public Usuario() {}
 
     public Usuario(String login, String senha, TipoUsuario tipoUsuario) {
         this.login = login;

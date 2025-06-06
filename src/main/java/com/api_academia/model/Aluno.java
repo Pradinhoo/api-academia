@@ -4,13 +4,12 @@ import com.api_academia.dto.AtualizaAlunoDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.List;
 
 @Entity
 @Table(name = "alunos")
-@Getter @Setter @NoArgsConstructor
+@Getter @NoArgsConstructor
 public class Aluno {
 
     @Id
@@ -30,13 +29,14 @@ public class Aluno {
     @OneToOne
     private Usuario usuario;
 
-    public Aluno(String nome, String cpf, String dataNascimento, String email, String telefone, Endereco endereco) {
+    public Aluno(String nome, String cpf, String dataNascimento, String email, String telefone, Endereco endereco, String dataCadastro) {
         this.nome = nome;
         this.cpf = cpf;
         this.dataNascimento = dataNascimento;
         this.email = email;
         this.telefone = telefone;
         this.endereco = endereco;
+        this.dataCadastro = dataCadastro;
     }
 
     public void atualizaDadosAluno(AtualizaAlunoDTO dados) {
@@ -45,11 +45,11 @@ public class Aluno {
         if (dados.telefone() != null) this.telefone = dados.telefone();
     }
 
-    public void ativarAluno() {
+    public void ativarCadastroAluno() {
         this.cadastroAtivo = true;
     }
 
-    public void desativarAluno() {
+    public void desativarCadastroAluno() {
         this.cadastroAtivo = false;
     }
 }

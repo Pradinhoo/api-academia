@@ -3,14 +3,14 @@ package com.api_academia.model;
 import com.api_academia.dto.ProgressoDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "progresso")
-@Getter
-@Setter
+@Getter @NoArgsConstructor
 public class Progresso {
 
     @Id
@@ -28,15 +28,6 @@ public class Progresso {
     @ManyToOne
     @JoinColumn(name = "id_aluno")
     private Aluno aluno;
-
-    public Progresso() {}
-
-    public Progresso(ProgressoDTO dados, Aluno aluno) {
-        this.peso = dados.peso();
-        this.altura = dados.altura();
-        this.aluno = aluno;
-        this.dataRegistro = LocalDate.now();
-    }
 
     public Progresso(Double peso, Double altura, Double valorIMC, Double pesoIdeal, ClassificacaoIMC classificacaoIMC, Aluno aluno) {
         this.peso = peso;
