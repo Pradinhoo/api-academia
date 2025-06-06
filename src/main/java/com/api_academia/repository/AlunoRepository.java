@@ -20,8 +20,8 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
     @Query("SELECT a FROM Aluno a WHERE a.id = :idAluno AND a.cadastroAtivo = true")
     Optional<Aluno> buscaAlunoAtivoPorId (@Param("idAluno") Long idAluno);
 
-    @Query("SELECT a FROM Aluno a WHERE a.cpf = :cpf AND a.cadastroAtivo = true")
-    Aluno localizarAlunoPorCpf(@Param("cpf") String cpf);
+    @Query("SELECT a FROM Aluno a WHERE a.cpf = :cpfAluno AND a.cadastroAtivo = true")
+    Optional<Aluno> localizarAlunoPorCpf(@Param("cpfAluno") String cpf);
 
     List<Aluno> findAllByCadastroAtivoTrue();
 }

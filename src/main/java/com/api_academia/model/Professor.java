@@ -1,14 +1,13 @@
 package com.api_academia.model;
 
-import com.api_academia.dto.ProfessorDTO;
+import com.api_academia.dto.AtualizaProfessorDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "professores")
-@Getter
-@Setter
+@Getter @NoArgsConstructor
 public class Professor {
 
     @Id
@@ -27,16 +26,28 @@ public class Professor {
     @OneToOne
     private Usuario usuario;
 
-    public Professor() {}
+    public Professor(String nome, String email, String cpf, String telefone, String cref, Endereco endereco, Especializacao especializacao) {
+        this.nome = nome;
+        this.email = email;
+        this.cpf = cpf;
+        this.telefone = telefone;
+        this.cref = cref;
+        this.endereco = endereco;
+        this.especializacao = especializacao;
+        this.cadastroAtivo = true;
+    }
 
-    public Professor(ProfessorDTO dados) {
-        this.nome = dados.nome();
-        this.email = dados.email();
-        this.cpf = dados.cpf();
-        this.telefone = dados.telefone();
-        this.cref = dados.cref();
-        this.endereco = new Endereco(dados.endereco());
-        this.especializacao = dados.especializacao();
+    public void atualizarDadosProfessor(AtualizaProfessorDTO dados) {
+        if (dados.nome() != null) this.nome = dados.nome();
+        if (dados.email() != null) this.email = dados.email();
+        if (dados.telefone() != null) this.telefone = dados.telefone();
+    }
+
+    public void desativarCadastroProfessor() {
+        this.cadastroAtivo = false;
+    }
+
+    public void ativarCadastroProfessor() {
         this.cadastroAtivo = true;
     }
 }

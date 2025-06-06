@@ -2,12 +2,17 @@ package com.api_academia.service.impl;
 
 import com.api_academia.dto.CheckInAlunoDTO;
 import com.api_academia.dto.FrequenciaAlunoDTO;
+import com.api_academia.exception.aluno.AlunoNaoEncontradoException;
+import com.api_academia.exception.checkin.AlunoNaoEncontradoPeloCpfException;
+import com.api_academia.exception.checkin.ErroAoRealizarCheckInException;
 import com.api_academia.model.Aluno;
 import com.api_academia.model.CheckInAluno;
 import com.api_academia.repository.AlunoRepository;
 import com.api_academia.repository.CheckInAlunoRepository;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import com.api_academia.service.CheckInAlunoService;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,43 +21,46 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Service
-public class CheckInAlunoServiceImpl {
+@RequiredArgsConstructor
+public class CheckInAlunoServiceImpl implements CheckInAlunoService {
 
-    @Autowired
-    private AlunoRepository alunoRepository;
+    private final AlunoRepository alunoRepository;
+    private final CheckInAlunoRepository checkInAlunoRepository;
 
-    @Autowired
-    private CheckInAlunoRepository checkInAlunoRepository;
-
-    public CheckInAlunoServiceImpl(AlunoRepository alunoRepository, CheckInAlunoRepository checkInAlunoRepository) {
-    }
-
-    public String realizarCheckIn (CheckInAlunoDTO dados) {
-        Aluno aluno = alunoRepository.localizarAlunoPorCpf(dados.cpf());
-        if (aluno == null) {
-            throw new EntityNotFoundException("Aluno não encontrado ou sem cadastro ativo");
-        }
-
-        LocalDateTime inicioDoDia = LocalDate.now().atStartOfDay();
-        LocalDateTime finalDoDia = LocalDate.now().atTime(LocalTime.MAX);
-
-        List<CheckInAluno> listaDeCheckIn = checkInAlunoRepository.verificaCheckInNoMesmoDia(aluno.getId(), inicioDoDia, finalDoDia);
-        if (listaDeCheckIn.isEmpty()) {
-            CheckInAluno checkInAluno = new CheckInAluno(aluno);
-            checkInAlunoRepository.save(checkInAluno);
-            return  "Check-In realizado com sucesso";
-        }
-        throw new IllegalStateException("Somente um Check-In pode ser realizado por dia");
+    public void realizarCheckIn (CheckInAlunoDTO dados) {
+        Aluno aluno = verificaAlunoPorCpf(dados.cpf());
+        verificaCheckInNoMesmoDia(aluno.getId());
+        checkInAlunoRepository.save(new CheckInAluno(aluno, LocalDateTime.now()));
     }
 
     public List<FrequenciaAlunoDTO> frequenciaCheckIn(Long idAluno) {
+        verificaAlunoPorId(idAluno);
 
-        var aluno = alunoRepository.buscaAlunoAtivoPorId(idAluno)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado ou não possui cadastro ativo"));
+        LocalDateTime agora = LocalDateTime.now();
+        LocalDateTime trintaDiasAtras = LocalDateTime.now().minusDays(30);
 
-        LocalDateTime dataHoraCheckInFinal = LocalDateTime.now();
-        LocalDateTime dataHoraCheckInInicial = dataHoraCheckInFinal.minusDays(30);
+        return checkInAlunoRepository.listaFrequenciaUltimos30Dias(idAluno, agora, trintaDiasAtras);
+    }
 
-        return checkInAlunoRepository.listaFrequenciaUltimos30Dias(idAluno, dataHoraCheckInFinal, dataHoraCheckInInicial);
+    private Aluno verificaAlunoPorCpf(String cpfAluno) {
+        return alunoRepository.localizarAlunoPorCpf(cpfAluno)
+                .orElseThrow(() -> new AlunoNaoEncontradoPeloCpfException(cpfAluno));
+    }
+
+    private void verificaAlunoPorId(Long idAluno) {
+         alunoRepository.buscaAlunoAtivoPorId(idAluno)
+                .orElseThrow(() -> new AlunoNaoEncontradoException(idAluno));
+    }
+
+    private void verificaCheckInNoMesmoDia(Long idAluno) {
+
+        LocalDateTime comecoDoDia = LocalDate.now().atStartOfDay();
+        LocalDateTime finalDoDia = LocalDate.now().atTime(LocalTime.MAX);
+
+        List<CheckInAluno> listaDeCheckIn = checkInAlunoRepository.verificaCheckInNoMesmoDia(idAluno, comecoDoDia, finalDoDia);
+
+        if (!listaDeCheckIn.isEmpty()) {
+            throw new ErroAoRealizarCheckInException();
+        }
     }
 }

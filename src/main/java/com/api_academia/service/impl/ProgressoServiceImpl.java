@@ -1,29 +1,30 @@
 package com.api_academia.service.impl;
 
 import com.api_academia.dto.ProgressoDTO;
+import com.api_academia.exception.aluno.AlunoNaoEncontradoException;
+
 import com.api_academia.model.Aluno;
 import com.api_academia.model.ClassificacaoIMC;
 import com.api_academia.model.Progresso;
 import com.api_academia.repository.AlunoRepository;
 import com.api_academia.repository.ProgressoRepository;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import com.api_academia.service.ProgressoService;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class ProgressoServiceImpl {
+@RequiredArgsConstructor
+public class ProgressoServiceImpl implements ProgressoService {
 
-    @Autowired
-    private ProgressoRepository progressoRepository;
-    @Autowired
-    private AlunoRepository alunoRepository;
+    private final ProgressoRepository progressoRepository;
+    private final AlunoRepository alunoRepository;
 
-    public String cadastrarProgressoAluno(Long id, ProgressoDTO dados) {
-        Aluno aluno = alunoRepository.buscaAlunoAtivoPorId(id)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado"));
+    public void cadastrarProgressoAluno(Long id, ProgressoDTO dados) {
+        Aluno aluno = verificarAlunoPorId(id);
 
         Double valorImc = calculaIMCAluno(dados.peso(), dados.altura());
         ClassificacaoIMC classificacaoIMC = classificaIMC(valorImc);
@@ -31,21 +32,23 @@ public class ProgressoServiceImpl {
 
         Progresso progresso = new Progresso(dados.peso(), dados.altura(), valorImc, pesoIdeal, classificacaoIMC, aluno);
         progressoRepository.save(progresso);
-
-        return "Progresso gravado com sucesso!";
     }
 
     public List<ProgressoDTO> listarProgressoAluno(Long id) {
-        alunoRepository.buscaAlunoAtivoPorId(id)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado"));
+        verificarAlunoPorId(id);
         return progressoRepository.listaProgressoAluno(id);
     }
 
-    public Double calculaIMCAluno(Double peso, Double altura) {
+    private Aluno verificarAlunoPorId(Long idAluno) {
+        return alunoRepository.buscaAlunoAtivoPorId(idAluno)
+                .orElseThrow(() -> new AlunoNaoEncontradoException(idAluno));
+    }
+
+    private Double calculaIMCAluno(Double peso, Double altura) {
         return peso / (altura * altura);
     }
 
-    public ClassificacaoIMC classificaIMC(Double imc) {
+    private ClassificacaoIMC classificaIMC(Double imc) {
         if (imc < 18.5) {
             return ClassificacaoIMC.MAGREZA;
         } else if (imc < 25) {
@@ -59,7 +62,7 @@ public class ProgressoServiceImpl {
         }
     }
 
-    public Double calculaPesoIdeal(Double altura) {
+    private Double calculaPesoIdeal(Double altura) {
         return 27.5 * (altura * altura);
     }
 }

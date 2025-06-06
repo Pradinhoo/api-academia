@@ -7,6 +7,7 @@ import com.api_academia.dto.ProfessorDTO;
 
 import com.api_academia.service.ProfessorService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +19,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/professores")
 @PreAuthorize("hasAnyRole('ADMIN', 'ATENDENTE')")
+@RequiredArgsConstructor
 public class ProfessorController {
 
-    @Autowired
-    private ProfessorService professorService;
+    private final ProfessorService professorService;
 
     @PostMapping
     public ResponseEntity<ProfessorDTO> cadastrarProfessor(@RequestBody @Valid ProfessorDTO dados) {

@@ -2,6 +2,7 @@ package com.api_academia.service.impl;
 
 
 import com.api_academia.model.Usuario;
+import com.api_academia.service.TokenService;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
 @Service
-public class TokenServiceImpl {
+public class TokenServiceImpl implements TokenService {
 
     private final String secret;
 

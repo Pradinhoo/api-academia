@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface AulaPersonalService {
 
-    String cadastrarAula(AulaPersonalDTO dados);
+    void cadastrarAula(AulaPersonalDTO dados);
     List<AulaPersonalDTO> listarTodasAsAulasFuturas();
     List<AulaPersonalDTO> listarAulasFuturasDoAluno(Long idAluno);
     List<AulaPersonalDTO> listarAulasFuturasDoProfessor(Long idProfessor);
-    String deletarAula(Long idAula);
+    void deletarAula(Long idAula);
 }

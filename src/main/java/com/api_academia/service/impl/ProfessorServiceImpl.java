@@ -3,92 +3,97 @@ package com.api_academia.service.impl;
 import com.api_academia.dto.AtualizaEnderecoDTO;
 import com.api_academia.dto.AtualizaProfessorDTO;
 import com.api_academia.dto.ProfessorDTO;
-import com.api_academia.model.Endereco;
+import com.api_academia.exception.professor.ProfessorJaAtivadoException;
+import com.api_academia.exception.professor.ProfessorJaCadastradoException;
+import com.api_academia.exception.professor.ProfessorJaDesativadoException;
+import com.api_academia.exception.professor.ProfessorNaoEncontradoException;
+import com.api_academia.mapper.ProfessorMapper;
 import com.api_academia.model.Professor;
 import com.api_academia.repository.ProfessorRepository;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.api_academia.service.ProfessorService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class ProfessorServiceImpl {
+@RequiredArgsConstructor
+public class ProfessorServiceImpl implements ProfessorService {
 
-    @Autowired
-    private ProfessorRepository professorRepository;
+    private final ProfessorRepository professorRepository;
+    private final ProfessorMapper professorMapper;
 
     public ProfessorDTO cadastrarProfessor(ProfessorDTO dados) {
-        if (professorRepository.findByCpf(dados.cpf()).isPresent()) {
-            throw new EntityExistsException("O professor já foi cadastrado anteriormente");
-        }
-
-        Professor professor = professorRepository.save(new Professor(dados));
-        return new ProfessorDTO(professor);
+        verificaProfessorPorCpf(dados.cpf());
+        Professor professor = professorMapper.toEntity(dados);
+        professorRepository.save(professor);
+        return professorMapper.toDto(professor);
     }
 
     public List<ProfessorDTO> listarProfessoresAtivos() {
         return professorRepository.findAllByCadastroAtivoTrue()
                 .stream()
-                .map(ProfessorDTO::new)
+                .map(professorMapper::toDto)
                 .toList();
     }
 
     public ProfessorDTO atualizarDadosProfessor(Long idProfessor, AtualizaProfessorDTO dados) {
         return professorRepository.buscaProfessorAtivoPorId(idProfessor)
                 .map(professor -> {
-                    if (dados.nome() != null) professor.setNome(dados.nome());
-                    if (dados.email() != null) professor.setEmail(dados.email());
-                    if (dados.telefone() != null) professor.setTelefone(dados.telefone());
+
+                    professor.atualizarDadosProfessor(dados);
                     professorRepository.save(professor);
-                    return new ProfessorDTO(professor);
-                })
-                .orElseThrow(() -> new EntityNotFoundException("Erro ao tentar localizar professor!"));
+
+                    return professorMapper.toDto(professor);})
+                .orElseThrow(() -> new ProfessorNaoEncontradoException(idProfessor));
     }
 
     public ProfessorDTO atualizarEnderecoProfessor(Long idProfessor, AtualizaEnderecoDTO dados) {
         return professorRepository.findById(idProfessor)
                 .map(professor -> {
-                    Endereco endereco = professor.getEndereco();
 
-                    if (dados.logradouro() != null) endereco.setLogradouro(dados.logradouro());
-                    if (dados.numero() != null) endereco.setNumero(dados.numero());
-                    if (dados.complemento() != null) endereco.setComplemento(dados.complemento());
-                    if (dados.cidade() != null) endereco.setCidade(dados.cidade());
-                    if (dados.estado() != null) endereco.setEstado(dados.estado());
-                    if (dados.cep() != null) endereco.setCep(dados.cep());
-
-                    professor.setEndereco(endereco);
-
+                    professor.getEndereco().atualizarEndereco(dados);
                     professorRepository.save(professor);
-                    return new ProfessorDTO(professor);
-                }).orElseThrow(() -> new EntityNotFoundException("Erro ao tentar localizar professor!"));
+
+                    return professorMapper.toDto(professor);})
+                .orElseThrow(() -> new ProfessorNaoEncontradoException(idProfessor));
     }
 
     public void desativarProfessor(Long idProfessor) {
-        Professor professor = professorRepository.buscaProfessorAtivoPorId(idProfessor)
-                .orElseThrow(() -> new EntityNotFoundException("Erro ao tentar localizar professor!"));
-
-        professor.setCadastroAtivo(false);
+        Professor professor = verificaProfessorPorId(idProfessor);
+        boolean cadastroProfessor = professor.getCadastroAtivo();
+        if(!cadastroProfessor) {
+            throw new ProfessorJaDesativadoException();
+        }
+        professor.desativarCadastroProfessor();
         professorRepository.save(professor);
     }
 
     public void ativarProfessor(Long idProfessor) {
-        Professor professor = professorRepository.findById(idProfessor)
-                .orElseThrow(() -> new EntityNotFoundException("Erro ao tentar localizar professor!"));
-
-        if (professor.getCadastroAtivo()) {
-            throw new IllegalStateException("Não é possível ativar um professor já ativo");
+        Professor professor = verificaProfessorPorId(idProfessor);
+        boolean cadastroProfessor = professor.getCadastroAtivo();
+        if (cadastroProfessor) {
+            throw new ProfessorJaAtivadoException();
         }
 
-        professor.setCadastroAtivo(true);
+        professor.ativarCadastroProfessor();
         professorRepository.save(professor);
     }
 
     public ProfessorDTO buscarProfessorPorId(Long idProfessor) {
         return professorRepository.findById(idProfessor)
-                .map(ProfessorDTO::new)
-                .orElseThrow(() -> new EntityNotFoundException("Professor não encontrado"));
+                .map(professorMapper::toDto)
+                .orElseThrow(() -> new ProfessorNaoEncontradoException(idProfessor));
+    }
+
+    private void verificaProfessorPorCpf(String cpfProfessor) {
+        if (professorRepository.findByCpf(cpfProfessor).isPresent()) {
+            throw new ProfessorJaCadastradoException();
+        }
+    }
+
+    private Professor verificaProfessorPorId(Long idProfessor) {
+         return professorRepository.findById(idProfessor)
+                .orElseThrow(() -> new ProfessorNaoEncontradoException(idProfessor));
     }
 }
