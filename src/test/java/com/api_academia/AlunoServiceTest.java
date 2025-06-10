@@ -13,6 +13,7 @@ import com.api_academia.model.Aluno;
 import com.api_academia.model.Endereco;
 import com.api_academia.repository.AlunoRepository;
 import com.api_academia.service.impl.AlunoServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,12 +38,22 @@ class AlunoServiceTest {
     @Mock
     private AlunoMapper alunoMapper;
 
+    private Endereco endereco;
+    private EnderecoDTO enderecoDTO;
+    private Aluno aluno;
+    private AlunoDTO alunoDTO;
+
+
+    @BeforeEach
+    void setUp() {
+        endereco = new Endereco("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
+        enderecoDTO = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
+        aluno = new Aluno("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", endereco, "11/22/3333");
+        alunoDTO = new AlunoDTO("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", enderecoDTO, "11/22/3333");
+    }
+
     @Test
     void deveCadastrarAlunoComSucesso() {
-        EnderecoDTO enderecoDTO = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        Endereco endereco = new Endereco("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        AlunoDTO alunoDTO = new AlunoDTO("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", enderecoDTO, "11/22/3333");
-        Aluno aluno = new Aluno("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", endereco, "11/22/3333");
 
         when(alunoRepository.findByCpf(alunoDTO.cpf())).thenReturn(Optional.empty());
         when(alunoMapper.toEntity(alunoDTO)).thenReturn(aluno);
@@ -63,10 +74,6 @@ class AlunoServiceTest {
 
     @Test
     void deveLancarExcecaoQuandoAlunoJaEstiverCadastrado() {
-        EnderecoDTO enderecoDTO = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        Endereco endereco = new Endereco("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        AlunoDTO alunoDTO = new AlunoDTO("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", enderecoDTO, "11/22/3333");
-        Aluno aluno = new Aluno("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", endereco, "11/22/3333");
 
         when(alunoRepository.findByCpf(alunoDTO.cpf())).thenReturn(Optional.of(aluno));
 
@@ -81,10 +88,6 @@ class AlunoServiceTest {
 
     @Test
     void deveListarTodosOsAlunoAtivosComSucessoQuandoExistirAlunos() {
-        EnderecoDTO enderecoDTO = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        Endereco endereco = new Endereco("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        AlunoDTO alunoDTO = new AlunoDTO("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", enderecoDTO, "11/22/3333");
-        Aluno aluno = new Aluno("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", endereco, "11/22/3333");
 
         when(alunoRepository.findAllByCadastroAtivoTrue()).thenReturn(List.of(aluno));
         when(alunoMapper.toDto(aluno)).thenReturn(alunoDTO);
@@ -112,17 +115,11 @@ class AlunoServiceTest {
     @Test
     void deveAtualizarOsDadosDosAlunosComSucesso() {
         Long id = 1L;
-
-        EnderecoDTO enderecoDTO = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        Endereco endereco = new Endereco("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        AlunoDTO alunoDTO = new AlunoDTO("Aluno Atualizado", "111.222.333-44", "11/22/3333", "email@email.com","00000000000", enderecoDTO, "11/22/3333");
-        Aluno aluno = new Aluno("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", endereco, "11/22/3333");
-
         AtualizaAlunoDTO atualizaAlunoDTO = new AtualizaAlunoDTO("Aluno Atualizado", "email@email.com", "00000000000");
-
+        AlunoDTO alunoAtualizadoDTO = new AlunoDTO("Aluno Atualizado", "11122233344", "11/22/3333", "email@email.com","00000000000", enderecoDTO, "11/22/3333");
 
         when(alunoRepository.findById(id)).thenReturn(Optional.of(aluno));
-        when(alunoMapper.toDto(aluno)).thenReturn(alunoDTO);
+        when(alunoMapper.toDto(any(Aluno.class))).thenReturn(alunoAtualizadoDTO);
 
         AlunoDTO resultado = service.atualizarDadosAluno(id, atualizaAlunoDTO);
 
@@ -160,7 +157,7 @@ class AlunoServiceTest {
                 "Rua Nova", "123", "Apto 5", "Nova Cidade", "SP", "12345678");
         Endereco enderecoAntigo = new Endereco(
                 "Rua Velha", "456", "Casa", "Cidade Velha", "RJ", "87654321");
-        Aluno aluno = new Aluno(
+        Aluno alunoAntigo = new Aluno(
                 "Aluno Teste", "11122233344", "01/01/2000", "aluno@email.com",
                 "11999998888", enderecoAntigo, "01/01/2024");
         AlunoDTO alunoDTOAtualizado = new AlunoDTO(
@@ -168,8 +165,8 @@ class AlunoServiceTest {
                 "11999998888", new EnderecoDTO("Rua Nova", "123", "Apto 5", "Nova Cidade", "SP", "12345678"),
                 "01/01/2024");
 
-        when(alunoRepository.findById(idAluno)).thenReturn(Optional.of(aluno));
-        when(alunoMapper.toDto(aluno)).thenReturn(alunoDTOAtualizado);
+        when(alunoRepository.findById(idAluno)).thenReturn(Optional.of(alunoAntigo));
+        when(alunoMapper.toDto(alunoAntigo)).thenReturn(alunoDTOAtualizado);
 
         AlunoDTO resultado = service.atualizarEnderecoAluno(idAluno, dadosAtualizados);
 
@@ -182,8 +179,8 @@ class AlunoServiceTest {
         assertEquals(dadosAtualizados.cep(), resultado.endereco().cep());
 
         verify(alunoRepository, times(1)).findById(idAluno);
-        verify(alunoRepository, times(1)).save(aluno);
-        verify(alunoMapper, times(1)).toDto(aluno);
+        verify(alunoRepository, times(1)).save(alunoAntigo);
+        verify(alunoMapper, times(1)).toDto(alunoAntigo);
     }
 
 
@@ -207,8 +204,6 @@ class AlunoServiceTest {
     @Test
     void deveDesativarAlunoComSucesso() {
         Long id = 1L;
-        Endereco endereco = new Endereco("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        Aluno aluno = new Aluno("nomeAluno", "11122233344", "dataNascimento", "email@email.com", "11233334444", endereco, "dataCadastro");
         aluno.cadastrarIdAluno(id);
 
         when(alunoRepository.findById(id)).thenReturn(Optional.of(aluno));
@@ -239,8 +234,6 @@ class AlunoServiceTest {
     @Test
     void deveAtivarAlunoComSucesso() {
         Long id = 1L;
-        Endereco endereco = new Endereco("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        Aluno aluno = new Aluno("nomeAluno", "11122233344", "dataNascimento", "email@email.com", "11233334444", endereco, "dataCadastro");
 
         aluno.desativarCadastroAluno();
 
@@ -256,8 +249,6 @@ class AlunoServiceTest {
     @Test
     void deveLancarExcecaoQuandoAlunoJaTiverCadastroAtivo() {
         Long id = 1L;
-        Endereco endereco = new Endereco("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        Aluno aluno = new Aluno("nomeAluno", "11122233344", "dataNascimento", "email@email.com", "11233334444", endereco, "dataCadastro");
         aluno.ativarCadastroAluno();
 
         when(alunoRepository.findById(id)).thenReturn(Optional.of(aluno));
@@ -275,11 +266,6 @@ class AlunoServiceTest {
     @Test
     void deveLocalizarAlunoPorIdComSucesso() {
         Long id = 1L;
-        EnderecoDTO enderecoDTO = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        Endereco endereco = new Endereco("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        AlunoDTO alunoDTO = new AlunoDTO("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", enderecoDTO, "11/22/3333");
-        Aluno aluno = new Aluno("Teste Unitário", "11122233344", "11/22/3333", "email@email.com","1192233-4455", endereco, "11/22/3333");
-
 
         when(alunoRepository.findById(id)).thenReturn(Optional.of(aluno));
         when(alunoMapper.toDto(aluno)).thenReturn(alunoDTO);

@@ -98,4 +98,5 @@ public class AlunoServiceImpl implements AlunoService {
         return alunoRepository.findById(idAluno)
                 .orElseThrow(() -> new AlunoNaoEncontradoException(idAluno));
     }
+
 }
