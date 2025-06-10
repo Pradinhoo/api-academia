@@ -1,18 +1,21 @@
 package com.api_academia;
 
 import com.api_academia.dto.*;
+import com.api_academia.exception.professor.MensagensDeErroProfessor;
+import com.api_academia.exception.professor.ProfessorJaCadastradoException;
+import com.api_academia.exception.professor.ProfessorNaoEncontradoException;
+import com.api_academia.mapper.ProfessorMapper;
+import com.api_academia.model.Endereco;
 import com.api_academia.model.Especializacao;
 import com.api_academia.model.Professor;
 import com.api_academia.repository.ProfessorRepository;
-import com.api_academia.service.ProfessorService;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
+import com.api_academia.service.impl.ProfessorServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,66 +25,76 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
 @ExtendWith(MockitoExtension.class)
-public class ProfessorServiceTest {
+class ProfessorServiceTest {
 
     @InjectMocks
-    private ProfessorService service;
+    private ProfessorServiceImpl service;
     @Mock
     private ProfessorRepository professorRepository;
+    @Mock
+    private ProfessorMapper professorMapper;
+
+    private EnderecoDTO enderecoDTO;
+    private Endereco endereco;
+    private ProfessorDTO professorDTO;
+    private Professor professor;
+
+    @BeforeEach
+    void setUp() {
+        endereco = new Endereco("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
+        enderecoDTO = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
+        professor = new Professor("nomeProfessor", "email@email.com", "111.222.333-44", "11900000000","123456-G", endereco, Especializacao.MUSCULACAO);
+        professorDTO = new ProfessorDTO("nomeProfessor", "email@email.com", "111.222.333-44", "11900000000","123456-G", enderecoDTO, Especializacao.MUSCULACAO);
+    }
 
     @Test
     void deveCadastrarProfessorComSucesso() {
-        EnderecoDTO endereco = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        ProfessorDTO professorDTO = new ProfessorDTO("nomeProfessor", "email@email.com", "111.222.333-44", "11900000000","123456-G", endereco, Especializacao.MUSCULACAO);
-        Professor professor = new Professor(professorDTO);
-        professor.setId(1L);
 
-        when(professorRepository.findByCpf(professor.getCpf())).thenReturn(Optional.empty());
-        when(professorRepository.save(any(Professor.class))).thenReturn(professor); // ← ESSENCIAL
-
+        when(professorRepository.findByCpf(professorDTO.cpf())).thenReturn(Optional.empty());
+        when(professorMapper.toEntity(professorDTO)).thenReturn(professor);
+        when(professorRepository.save(any(Professor.class))).thenReturn(professor);
+        when(professorMapper.toDto(professor)).thenReturn(professorDTO);
 
         ProfessorDTO resultado = service.cadastrarProfessor(professorDTO);
 
         assertEquals(professorDTO.cpf(), resultado.cpf());
 
-        verify(professorRepository, times(1)).findByCpf(professor.getCpf());
+        verify(professorRepository, times(1)).findByCpf(professorDTO.cpf());
+        verify(professorMapper, times(1)).toEntity(professorDTO);
         verify(professorRepository, times(1)).save(any(Professor.class));
+        verify(professorMapper, times(1)).toDto(professor);
     }
 
     @Test
     void deveLancarExcecaoQuandoProfessorJaEstiverCadastrado() {
-        EnderecoDTO endereco = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        ProfessorDTO professorDTO = new ProfessorDTO("nomeProfessor", "email@email.com", "111.222.333-44", "11900000000","123456-G", endereco, Especializacao.MUSCULACAO);
-        Professor professor = new Professor(professorDTO);
 
-        when(professorRepository.findByCpf(professor.getCpf())).thenReturn(Optional.of(professor));
+        when(professorRepository.findByCpf(professorDTO.cpf())).thenReturn(Optional.of(professorDTO));
 
-        EntityExistsException ex = assertThrows(EntityExistsException.class,
+        ProfessorJaCadastradoException ex = assertThrows(ProfessorJaCadastradoException.class,
                 () -> service.cadastrarProfessor(professorDTO));
-        assertEquals("O professor já foi cadastrado anteriormente", ex.getMessage());
-        verify(professorRepository, times(1)).findByCpf(professor.getCpf());
+        assertEquals(String.format(MensagensDeErroProfessor.PROFESSOR_JA_CADASTRADO), ex.getMessage());
+
+        verify(professorRepository, times(1)).findByCpf(professorDTO.cpf());
         verify(professorRepository, never()).save(any(Professor.class));
     }
 
     @Test
     void deveListarProfessoresAtivosComSucessoQuandoExistirProfessores() {
-        EnderecoDTO endereco = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        ProfessorDTO professorDTO = new ProfessorDTO("nomeProfessor", "email@email.com", "111.222.333-44", "11900000000","123456-G", endereco, Especializacao.MUSCULACAO);
-        Professor professor = new Professor(professorDTO);
 
         when(professorRepository.findAllByCadastroAtivoTrue()).thenReturn(List.of(professor));
+        when(professorMapper.toDto(professor)).thenReturn(professorDTO);
 
         List<ProfessorDTO> resultado = service.listarProfessoresAtivos();
 
         assertNotNull(resultado);
+
         verify(professorRepository, times(1)).findAllByCadastroAtivoTrue();
+        verify(professorMapper, times(1)).toDto(professor);
     }
 
     @Test
     void deveTrazerUmaListaVaziaQuandoNaoExistirProfessoresAtivos() {
-        Professor professor = new Professor();
 
         when(professorRepository.findAllByCadastroAtivoTrue()).thenReturn(Collections.emptyList());
 
@@ -89,20 +102,19 @@ public class ProfessorServiceTest {
 
         assertNotNull(resultado);
         assertTrue(resultado.isEmpty());
+
         verify(professorRepository, times(1)).findAllByCadastroAtivoTrue();
     }
 
     @Test
     void deveAtualizarOsDadosDosProfessoresComSucesso() {
         Long id = 1L;
-
-        EnderecoDTO endereco = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        ProfessorDTO professorDTO = new ProfessorDTO("nomeProfessor", "email@email.com", "111.222.333-44", "11900000000","123456-G", endereco, Especializacao.MUSCULACAO);
-        Professor professor = new Professor(professorDTO);
-
         AtualizaProfessorDTO atualizaProfessorDTO = new AtualizaProfessorDTO("nomeAtualizado", "email.atualizado@email.com", "telefoneAtualizado");
+        ProfessorDTO professorAtualizado = new ProfessorDTO ("nomeAtualizado", "email.atualizado@email.com", "111.222.333-44", "telefoneAtualizado","123456-G", enderecoDTO, Especializacao.MUSCULACAO);
 
         when(professorRepository.buscaProfessorAtivoPorId(id)).thenReturn(Optional.of(professor));
+        when(professorRepository.save(professor)).thenReturn(professor);
+        when(professorMapper.toDto(professor)).thenReturn(professorAtualizado);
 
         ProfessorDTO resultado = service.atualizarDadosProfessor(id, atualizaProfessorDTO);
 
@@ -113,6 +125,7 @@ public class ProfessorServiceTest {
 
         verify(professorRepository, times(1)).buscaProfessorAtivoPorId(id);
         verify(professorRepository, times(1)).save(any(Professor.class));
+        verify(professorMapper, times(1)).toDto(professor);
     }
 
     @Test
@@ -122,9 +135,9 @@ public class ProfessorServiceTest {
 
         when(professorRepository.buscaProfessorAtivoPorId(id)).thenReturn((Optional.empty()));
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ProfessorNaoEncontradoException ex = assertThrows(ProfessorNaoEncontradoException.class,
                 () -> service.atualizarDadosProfessor(id, atualizaProfessorDTO));
-        assertEquals("Erro ao tentar localizar professor!", ex.getMessage());
+        assertEquals(String.format(MensagensDeErroProfessor.PROFESSOR_NAO_ENCONTRADO, id), ex.getMessage());
 
         verify(professorRepository, times(1)).buscaProfessorAtivoPorId(id);
         verify(professorRepository, never()).save(any(Professor.class));
@@ -133,14 +146,12 @@ public class ProfessorServiceTest {
     @Test
     void deveAtualizarOEnderecoDoProfessorComSucesso() {
         Long id = 1L;
-
-        EnderecoDTO endereco = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        ProfessorDTO professorDTO = new ProfessorDTO("nomeProfessor", "email@email.com", "111.222.333-44", "11900000000","123456-G", endereco, Especializacao.MUSCULACAO);
-        Professor professor = new Professor(professorDTO);
-
         AtualizaEnderecoDTO atualizaEnderecoDTO = new AtualizaEnderecoDTO("logradouroAtualizado", "numeroAtualizado", "complementoAtualizado", "cidadeAtualizada", "estadoAtualizado", "00000000");
+        ProfessorDTO professorAtualizadoDTO = new ProfessorDTO("nomeProfessor", "email@email.com", "111.222.333-44", "11900000000","123456-G", new EnderecoDTO("logradouroAtualizado", "numeroAtualizado", "complementoAtualizado", "cidadeAtualizada", "estadoAtualizado", "00000000"), Especializacao.MUSCULACAO);
 
         when(professorRepository.findById(id)).thenReturn(Optional.of(professor));
+        when(professorRepository.save(professor)).thenReturn(professor);
+        when(professorMapper.toDto(professor)).thenReturn(professorAtualizadoDTO);
 
         ProfessorDTO resultado = service.atualizarEnderecoProfessor(id, atualizaEnderecoDTO);
 
@@ -154,19 +165,19 @@ public class ProfessorServiceTest {
 
         verify(professorRepository, times(1)).findById(id);
         verify(professorRepository, times(1)).save(any(Professor.class));
+        verify(professorMapper, times(1)).toDto(professor);
     }
 
     @Test
     void deveLancarExcecaoQuandoProfessorNaoEncontradoAoAtualizarEndereco() {
         Long id = 1L;
-
         AtualizaEnderecoDTO atualizaEnderecoDTO = new AtualizaEnderecoDTO("logradouroAtualizado", "numeroAtualizado", "complementoAtualizado", "cidadeAtualizada", "estadoAtualizado", "00000000");
 
         when(professorRepository.findById(id)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ProfessorNaoEncontradoException ex = assertThrows(ProfessorNaoEncontradoException.class,
                 () -> service.atualizarEnderecoProfessor(id, atualizaEnderecoDTO));
-        assertEquals("Erro ao tentar localizar professor!", ex.getMessage());
+        assertEquals(String.format(MensagensDeErroProfessor.PROFESSOR_NAO_ENCONTRADO, id), ex.getMessage());
 
         verify(professorRepository, times(1)).findById(id);
         verify(professorRepository, never()).save(any(Professor.class));
@@ -175,17 +186,14 @@ public class ProfessorServiceTest {
     @Test
     void deveDesativarProfessorComSucesso() {
         Long id = 1L;
+        professor.cadastrarIdProfessor(id);
 
-        EnderecoDTO endereco = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        ProfessorDTO professorDTO = new ProfessorDTO("nomeProfessor", "email@email.com", "111.222.333-44", "11900000000","123456-G", endereco, Especializacao.MUSCULACAO);
-        Professor professor = new Professor(professorDTO);
+        when(professorRepository.findById(id)).thenReturn(Optional.of(professor));
 
-        when(professorRepository.buscaProfessorAtivoPorId(id)).thenReturn(Optional.of(professor));
-
-        service.desativarProfessor(id);
+        service.desativarProfessor(professor.getId());
 
         assertFalse(professor.getCadastroAtivo());
-        verify(professorRepository, times(1)).buscaProfessorAtivoPorId(id);
+        verify(professorRepository, times(1)).findById(id);
         verify(professorRepository, times(1)).save(any(Professor.class));
     }
 
@@ -193,29 +201,25 @@ public class ProfessorServiceTest {
     void deveLancarExcecaoQuandoProfessorNaoEncontradoAoDesativar() {
         Long id = 1L;
 
-        when(professorRepository.buscaProfessorAtivoPorId(id)).thenReturn(Optional.empty());
+        when(professorRepository.findById(id)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ProfessorNaoEncontradoException ex = assertThrows(ProfessorNaoEncontradoException.class,
                 () -> service.desativarProfessor(id));
-        assertEquals("Erro ao tentar localizar professor!", ex.getMessage());
+        assertEquals(String.format(MensagensDeErroProfessor.PROFESSOR_NAO_ENCONTRADO, id), ex.getMessage());
 
-        verify(professorRepository, times(1)).buscaProfessorAtivoPorId(id);
+        verify(professorRepository, times(1)).findById(id);
         verify(professorRepository, never()).save(any(Professor.class));
     }
 
     @Test
     void deveAtivarProfessorComSucesso() {
         Long id = 1L;
-
-        EnderecoDTO endereco = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        ProfessorDTO professorDTO = new ProfessorDTO("nomeProfessor", "email@email.com", "111.222.333-44", "11900000000","123456-G", endereco, Especializacao.MUSCULACAO);
-        Professor professor = new Professor(professorDTO);
-        professor.setCadastroAtivo(false);
+        professor.cadastrarIdProfessor(id);
+        professor.desativarCadastroProfessor();
 
         when(professorRepository.findById(id)).thenReturn(Optional.of(professor));
 
-
-        service.ativarProfessor(id);
+        service.ativarProfessor(professor.getId());
 
         assertTrue(professor.getCadastroAtivo());
 
@@ -229,9 +233,9 @@ public class ProfessorServiceTest {
 
         when(professorRepository.findById(id)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ProfessorNaoEncontradoException ex = assertThrows(ProfessorNaoEncontradoException.class,
                 () -> service.ativarProfessor(id));
-        assertEquals("Erro ao tentar localizar professor!", ex.getMessage());
+        assertEquals(String.format(MensagensDeErroProfessor.PROFESSOR_NAO_ENCONTRADO, id), ex.getMessage());
 
         verify(professorRepository, times(1)).findById(id);
         verify(professorRepository, never()).save(any(Professor.class));
@@ -241,33 +245,31 @@ public class ProfessorServiceTest {
     void deveBuscarProfessorPeloIdComSucesso() {
         Long id = 1L;
 
-        EnderecoDTO endereco = new EnderecoDTO("logradouro", "numero", "complemento", "cidade", "estado", "00000000");
-        ProfessorDTO professorDTO = new ProfessorDTO("nomeProfessor", "email@email.com", "111.222.333-44", "11900000000","123456-G", endereco, Especializacao.MUSCULACAO);
-        Professor professor = new Professor(professorDTO);
-
         when(professorRepository.findById(id)).thenReturn(Optional.of(professor));
+        when(professorMapper.toDto(professor)).thenReturn(professorDTO);
 
         ProfessorDTO resultado = service.buscarProfessorPorId(id);
 
-        assertEquals(professor.getNome(), resultado.nome());
-        assertEquals(professor.getEmail(), resultado.email());
-        assertEquals(professor.getCpf(), resultado.cpf());
-        assertEquals(professor.getTelefone(), resultado.telefone());
-        assertEquals(professor.getCref(), resultado.cref());
+        assertEquals(professorDTO.nome(), resultado.nome());
+        assertEquals(professorDTO.email(), resultado.email());
+        assertEquals(professorDTO.cpf(), resultado.cpf());
+        assertEquals(professorDTO.telefone(), resultado.telefone());
+        assertEquals(professorDTO.cref(), resultado.cref());
 
         verify(professorRepository, times(1)).findById(id);
         verify(professorRepository, never()).save(any(Professor.class));
+        verify(professorMapper, times(1)).toDto(professor);
     }
 
     @Test
-    void deveLancarExcecaoQuandoProfessorNaoEncontradoAoBsucarProId() {
+    void deveLancarExcecaoQuandoProfessorNaoEncontradoAoBuscarProId() {
         Long id = 1L;
 
         when(professorRepository.findById(id)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        ProfessorNaoEncontradoException ex = assertThrows(ProfessorNaoEncontradoException.class,
                 () -> service.buscarProfessorPorId(id));
-        assertEquals("Professor não encontrado", ex.getMessage());
+        assertEquals(String.format(MensagensDeErroProfessor.PROFESSOR_NAO_ENCONTRADO, id), ex.getMessage());
 
         verify(professorRepository, times(1)).findById(id);
         verify(professorRepository, never()).save(any(Professor.class));
