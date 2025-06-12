@@ -50,4 +50,6 @@ public class Professor {
     public void ativarCadastroProfessor() {
         this.cadastroAtivo = true;
     }
+
+    public void cadastrarIdProfessor(Long idProfessor) {this.id = idProfessor;}
 }

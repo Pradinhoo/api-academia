@@ -37,6 +37,7 @@ public class Aluno {
         this.telefone = telefone;
         this.endereco = endereco;
         this.dataCadastro = dataCadastro;
+        this.cadastroAtivo = true;
     }
 
     public void atualizaDadosAluno(AtualizaAlunoDTO dados) {
@@ -52,4 +53,7 @@ public class Aluno {
     public void desativarCadastroAluno() {
         this.cadastroAtivo = false;
     }
+
+    // Apenas para testes
+    public void cadastrarIdAluno(Long idAluno) {this.id = idAluno;}
 }

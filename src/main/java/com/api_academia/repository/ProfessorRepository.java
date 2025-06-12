@@ -1,5 +1,6 @@
 package com.api_academia.repository;
 
+import com.api_academia.dto.ProfessorDTO;
 import com.api_academia.model.Professor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,5 +16,5 @@ public interface ProfessorRepository extends JpaRepository<Professor, Long> {
     @Query("SELECT p FROM Professor p WHERE p.id = :idProfessor AND p.cadastroAtivo = true")
     Optional<Professor> buscaProfessorAtivoPorId(@Param("idProfessor") Long idProfessor);
 
-    Optional<Professor> findByCpf(String cpf);
+    Optional<ProfessorDTO> findByCpf(String cpf);
 }
