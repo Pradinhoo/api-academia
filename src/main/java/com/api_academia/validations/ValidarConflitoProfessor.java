@@ -1,6 +1,7 @@
 package com.api_academia.validations;
 
 import com.api_academia.dto.AulaPersonalDTO;
+import com.api_academia.exception.aulapersonal.ConflitoProfessorException;
 import com.api_academia.repository.AulaPersonalRepository;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,7 @@ public class ValidarConflitoProfessor implements ValidarCadastroAula {
                 dados.idProfessor(), dados.dataHoraAula(), dados.dataHoraAulaFim());
 
         if (!conflitoProfessor.isEmpty()) {
-            throw new IllegalStateException("Conflito de horário: PROFESSOR já possui uma aula marcada nesse horário!");
+            throw new ConflitoProfessorException();
         }
     }
 }
