@@ -1,22 +1,31 @@
 package com.api_academia;
 
 import com.api_academia.dto.AulaPersonalDTO;
+import com.api_academia.exception.aluno.AlunoNaoEncontradoException;
+import com.api_academia.exception.aluno.MensagensDeErroAluno;
+import com.api_academia.exception.aulapersonal.AulaPersonalNaoEncontradaException;
+import com.api_academia.exception.aulapersonal.MensagensDeErroAulaPersonal;
+import com.api_academia.exception.professor.MensagensDeErroProfessor;
+import com.api_academia.exception.professor.ProfessorNaoEncontradoException;
 import com.api_academia.model.Aluno;
 import com.api_academia.model.AulaPersonal;
 import com.api_academia.model.Professor;
 import com.api_academia.repository.AlunoRepository;
 import com.api_academia.repository.AulaPersonalRepository;
 import com.api_academia.repository.ProfessorRepository;
-import com.api_academia.service.AulaPersonalService;
-import jakarta.persistence.EntityNotFoundException;
+import com.api_academia.service.impl.AulaPersonalServiceImpl;
+import com.api_academia.validations.ValidarCadastroAula;
+import com.api_academia.validations.ValidarConflitoAluno;
+import com.api_academia.validations.ValidarConflitoProfessor;
+import com.api_academia.validations.ValidarHorarioAulaNoPassado;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -25,173 +34,110 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
 @ExtendWith(MockitoExtension.class)
-public class AulaPersonalServiceTest {
+class AulaPersonalServiceTest {
 
-    @InjectMocks
-    private AulaPersonalService service;
+    private AulaPersonalServiceImpl service;
     @Mock
     private AlunoRepository alunoRepository;
     @Mock
     private ProfessorRepository professorRepository;
     @Mock
     private AulaPersonalRepository aulaPersonalRepository;
+    @Mock
+    private ValidarConflitoAluno validarConflitoAluno;
+    @Mock
+    private ValidarConflitoProfessor validarConflitoProfessor;
+    @Mock
+    private ValidarHorarioAulaNoPassado validarHorarioAulaNoPassado;
+
+    private Long idAluno;
+    private Long idProfessor;
+    private LocalDateTime dataHoraAula;
+    private LocalDateTime dataHoraAulaFim;
+    private Aluno aluno;
+    private Professor professor;
+    private AulaPersonalDTO aulaPersonalDTO;
+    private AulaPersonal aulaPersonal;
+    private List<ValidarCadastroAula> listaDeValidadores;
+
+    @BeforeEach
+    void setUp() {
+        idAluno = 1L;
+        idProfessor = 1L;
+        dataHoraAula = LocalDateTime.now().plusHours(1);
+        dataHoraAulaFim = dataHoraAula.plusHours(1);
+        aluno = new Aluno();
+        aluno.cadastrarIdAluno(idAluno);
+        professor = new Professor();
+        professor.cadastrarIdProfessor(idProfessor);
+        aulaPersonalDTO = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
+        aulaPersonal = new AulaPersonal(aluno, professor, dataHoraAula);
+
+        listaDeValidadores = Arrays.asList(
+                validarConflitoAluno,
+                validarConflitoProfessor,
+                validarHorarioAulaNoPassado);
+
+        service = new AulaPersonalServiceImpl(
+                aulaPersonalRepository,
+                alunoRepository,
+                professorRepository,
+                listaDeValidadores
+        );
+    }
 
     @Test
     void deveCadastrarAulaComSucesso() {
-        Long idAluno = 1L;
-        Long idProfessor = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(1);
-        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
 
-        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
-
-        Aluno aluno = new Aluno();
-        aluno.setId(idAluno);
-        Professor professor = new Professor();
-        professor.setId(idProfessor);
+        doNothing().when(validarConflitoAluno).validar(aulaPersonalDTO);
+        doNothing().when(validarConflitoProfessor).validar(aulaPersonalDTO);
+        doNothing().when(validarHorarioAulaNoPassado).validar(aulaPersonalDTO);
 
         when(alunoRepository.buscaAlunoAtivoPorId(idAluno)).thenReturn(Optional.of(aluno));
-
         when(professorRepository.buscaProfessorAtivoPorId(idProfessor)).thenReturn(Optional.of(professor));
 
-        when(aulaPersonalRepository.verificarConflitoProfessor(idProfessor, dataHoraAula, dataHoraAulaFim))
-                .thenReturn(Collections.emptyList());
-        when(aulaPersonalRepository.verificarConflitoAluno(idAluno, dataHoraAula, dataHoraAulaFim))
-                .thenReturn(Collections.emptyList());
+        service.cadastrarAula(aulaPersonalDTO);
 
-        String resultado = service.cadastrarAula(dto);
+        verify(validarConflitoAluno, times(1)).validar(aulaPersonalDTO);
+        verify(validarConflitoProfessor, times(1)).validar(aulaPersonalDTO);
+        verify(validarHorarioAulaNoPassado, times(1)).validar(aulaPersonalDTO);
 
-        assertEquals("Aula marcada com sucesso", resultado);
         verify(aulaPersonalRepository, times(1)).save(any(AulaPersonal.class));
+        verify(alunoRepository, never()).save(any(Aluno.class));
+        verify(professorRepository, never()).save(any(Professor.class));
     }
 
     @Test
     void deveLancarExcecaoQuandoAlunoNaoEncontrado() {
-        Long idAluno = 1L;
-        Long idProfessor = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(1);
-        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
-
-        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
 
         when(alunoRepository.buscaAlunoAtivoPorId(idAluno)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> service.cadastrarAula(dto));
-        assertEquals("Aluno não encontrado ou não possui cadastro ativo", ex.getMessage());
+        AlunoNaoEncontradoException ex = assertThrows(AlunoNaoEncontradoException.class,
+                () -> service.cadastrarAula(aulaPersonalDTO));
+        assertEquals(String.format(MensagensDeErroAluno.ALUNO_NAO_ENCONTRADO, idAluno), ex.getMessage());
+
+        verify(alunoRepository, times(1)).buscaAlunoAtivoPorId(idAluno);
     }
 
     @Test
     void deveLancarExcecaoQuandoProfessorNaoEncontrado() {
-        Long idAluno = 1L;
-        Long idProfessor = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(1);
-        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
-
-        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
-        Aluno aluno = new Aluno();
-        aluno.setId(idAluno);
 
         when(alunoRepository.buscaAlunoAtivoPorId(idAluno)).thenReturn(Optional.of(aluno));
-
         when(professorRepository.buscaProfessorAtivoPorId(idProfessor)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> service.cadastrarAula(dto));
-        assertEquals("Professor não encontrado ou não possui cadastro ativo", ex.getMessage());
-    }
+        ProfessorNaoEncontradoException ex = assertThrows(ProfessorNaoEncontradoException.class,
+                () -> service.cadastrarAula(aulaPersonalDTO));
+        assertEquals(String.format(MensagensDeErroProfessor.PROFESSOR_NAO_ENCONTRADO, idProfessor), ex.getMessage());
 
-    @Test
-    void deveLancarExcecaoQuandoAulaForMarcadaNoPassado() {
-        Long idAluno = 1L;
-        Long idProfessor = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().minusHours(1);
-        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
-
-        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
-
-        Aluno aluno = new Aluno();
-        aluno.setId(idAluno);
-        Professor professor = new Professor();
-        professor.setId(idProfessor);
-
-        when(alunoRepository.buscaAlunoAtivoPorId(idAluno)).thenReturn(Optional.of(aluno));
-
-        when(professorRepository.buscaProfessorAtivoPorId(idProfessor)).thenReturn(Optional.of(professor));
-
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.cadastrarAula(dto));
-        assertEquals("Não é possível marcar uma aula no passado", ex.getMessage());
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoAlunoTiverConflitoDeHorario() {
-        Long idAluno = 1L;
-        Long idProfessor = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(1);
-        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
-
-        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
-
-        Aluno aluno = new Aluno();
-        aluno.setId(idAluno);
-        Professor professor = new Professor();
-        professor.setId(idProfessor);
-
-        when(alunoRepository.buscaAlunoAtivoPorId(idAluno)).thenReturn(Optional.of(aluno));
-
-        when(professorRepository.buscaProfessorAtivoPorId(idProfessor)).thenReturn(Optional.of(professor));
-
-        when(aulaPersonalRepository.verificarConflitoProfessor(idProfessor, dataHoraAula, dataHoraAulaFim))
-                .thenReturn(Collections.emptyList());
-        when(aulaPersonalRepository.verificarConflitoAluno(idAluno, dataHoraAula, dataHoraAulaFim))
-                .thenReturn(List.of(dto));
-
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> service.cadastrarAula(dto));
-        assertEquals("Conflito de horário: professor ou aluno já possui uma aula marcada nesse período", ex.getMessage());
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoProfessorTiverConflitoDeHorario() {
-        Long idAluno = 1L;
-        Long idProfessor = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(1);
-        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
-
-        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
-
-        Aluno aluno = new Aluno();
-        aluno.setId(idAluno);
-        Professor professor = new Professor();
-        professor.setId(idProfessor);
-
-        when(alunoRepository.buscaAlunoAtivoPorId(idAluno)).thenReturn(Optional.of(aluno));
-
-        when(professorRepository.buscaProfessorAtivoPorId(idProfessor)).thenReturn(Optional.of(professor));
-
-        when(aulaPersonalRepository.verificarConflitoProfessor(idProfessor, dataHoraAula, dataHoraAulaFim))
-                .thenReturn(List.of(dto));
-        when(aulaPersonalRepository.verificarConflitoAluno(idAluno, dataHoraAula, dataHoraAulaFim))
-                .thenReturn(Collections.emptyList());
-
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> service.cadastrarAula(dto));
-        assertEquals("Conflito de horário: professor ou aluno já possui uma aula marcada nesse período", ex.getMessage());
+        verify(alunoRepository, times(1)).buscaAlunoAtivoPorId(idAluno);
+        verify(professorRepository, times(1)).buscaProfessorAtivoPorId(idProfessor);
+        verify(aulaPersonalRepository, never()).save(any(AulaPersonal.class));
     }
 
     @Test
     void deveListarTodasAsAulasFuturasComAulas() {
-        Long idAluno = 1L;
-        Long idProfessor = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(1);
-        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
-
-        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
-
-        when(aulaPersonalRepository.listaTodasAsAulasFuturas()).thenReturn(List.of(dto));
+        when(aulaPersonalRepository.listaTodasAsAulasFuturas()).thenReturn(List.of(aulaPersonalDTO));
 
         List<AulaPersonalDTO> resultado = service.listarTodasAsAulasFuturas();
 
@@ -201,12 +147,6 @@ public class AulaPersonalServiceTest {
 
     @Test
     void deveListarTodasAsAulasFuturasSemAulas() {
-        Long idAluno = 1L;
-        Long idProfessor = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(1);
-        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
-
-        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
 
         when(aulaPersonalRepository.listaTodasAsAulasFuturas()).thenReturn(Collections.emptyList());
 
@@ -219,19 +159,10 @@ public class AulaPersonalServiceTest {
     }
 
     @Test
-    void deveListaAsAulasFuturasDoAlunoComSucesso() {
-        Long idAluno = 1L;
-        Long idProfessor = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(1);
-        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
-
-        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
-
-        Aluno aluno = new Aluno();
-        aluno.setId(idAluno);
+    void deveListarAsAulasFuturasDoAlunoComSucesso() {
 
         when(alunoRepository.buscaAlunoAtivoPorId(idAluno)).thenReturn(Optional.of(aluno));
-        when(aulaPersonalRepository.listaAulasMarcadasAlunos(eq(idAluno), any(LocalDateTime.class))).thenReturn(List.of(dto));
+        when(aulaPersonalRepository.listaAulasMarcadasAlunos(eq(idAluno), any(LocalDateTime.class))).thenReturn(List.of(aulaPersonalDTO));
 
         List<AulaPersonalDTO> resultado = service.listarAulasFuturasDoAluno(idAluno);
 
@@ -239,39 +170,15 @@ public class AulaPersonalServiceTest {
     }
 
     @Test
-    void deveListaAsAulasFuturasDoProfessorComSucesso() {
-        Long idAluno = 1L;
-        Long idProfessor = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(1);
-        LocalDateTime dataHoraAulaFim = dataHoraAula.plusHours(1);
-
-        AulaPersonalDTO dto = new AulaPersonalDTO(idAluno, idProfessor, dataHoraAula, dataHoraAulaFim);
-
-        Professor professor = new Professor();
-        professor.setId(idProfessor);
-
-        when(professorRepository.buscaProfessorAtivoPorId(idProfessor)).thenReturn(Optional.of(professor));
-        when(aulaPersonalRepository.listaAulasMarcadasProfessores(eq(idProfessor), any(LocalDateTime.class))).thenReturn(List.of(dto));
-
-        List<AulaPersonalDTO> resultado = service.listarAulasFuturasDoProfessor(idProfessor);
-
-        assertNotNull(resultado);
-    }
-
-    @Test
     void deveDeletarAulaMarcadaComSucesso() {
         Long idAulaPersonal = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().plusHours(2);
+        AulaPersonal aulaFutura = new AulaPersonal(aluno, professor, LocalDateTime.now().plusHours(2));
 
-        AulaPersonal aulaPersonal = new AulaPersonal();
-        aulaPersonal.setId(idAulaPersonal);
-        aulaPersonal.setDataHoraAula(dataHoraAula);
+        when(aulaPersonalRepository.findById(idAulaPersonal)).thenReturn(Optional.of(aulaFutura));
 
-        when(aulaPersonalRepository.findById(idAulaPersonal)).thenReturn(Optional.of(aulaPersonal));
+        service.deletarAula(idAulaPersonal);
 
-        String resultado = service.deletarAula(idAulaPersonal);
-
-        assertEquals("Aula deletada com sucesso", resultado);
+        verify(aulaPersonalRepository, times(1)).findById(idAulaPersonal);
         verify(aulaPersonalRepository, times(1)).delete(any(AulaPersonal.class));
     }
 
@@ -281,26 +188,8 @@ public class AulaPersonalServiceTest {
 
         when(aulaPersonalRepository.findById(idAulaPersonal)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        AulaPersonalNaoEncontradaException ex = assertThrows(AulaPersonalNaoEncontradaException.class,
                 () -> service.deletarAula(idAulaPersonal));
-        assertEquals("Aula não encontrada", ex.getMessage());
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoAulaForDentroDeUmaHora() {
-        Long idAulaPersonal = 1L;
-        LocalDateTime dataHoraAula = LocalDateTime.now().plusMinutes(30);
-
-        AulaPersonal aulaPersonal = new AulaPersonal();
-        aulaPersonal.setId(idAulaPersonal);
-        aulaPersonal.setDataHoraAula(dataHoraAula);
-
-        when(aulaPersonalRepository.findById(idAulaPersonal)).thenReturn(Optional.of(aulaPersonal));
-
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> service.deletarAula(idAulaPersonal));
-
-        assertEquals("Aulas só podem ser desmarcadas com mais de 1h de antecedência", ex.getMessage());
-        verify(aulaPersonalRepository, never()).delete(any());
+        assertEquals(String.format(MensagensDeErroAulaPersonal.AULA_NAO_ENCONTRADA, idAulaPersonal), ex.getMessage());
     }
 }

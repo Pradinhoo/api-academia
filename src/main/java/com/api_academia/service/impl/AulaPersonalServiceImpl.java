@@ -13,7 +13,6 @@ import com.api_academia.repository.AulaPersonalRepository;
 import com.api_academia.repository.ProfessorRepository;
 import com.api_academia.service.AulaPersonalService;
 import com.api_academia.validations.ValidarCadastroAula;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +30,9 @@ public class AulaPersonalServiceImpl implements AulaPersonalService {
 
     public void cadastrarAula(AulaPersonalDTO dados) {
 
-        validadores.forEach(v -> v.validar(dados));
         Aluno aluno = validarAluno(dados.idAluno());
         Professor professor = validarProfessor(dados.idProfessor());
+        validadores.forEach(v -> v.validar(dados));
 
         AulaPersonal aula = new AulaPersonal(aluno, professor, dados.dataHoraAula());
         aulaPersonalRepository.save(aula);
@@ -56,13 +55,7 @@ public class AulaPersonalServiceImpl implements AulaPersonalService {
     }
 
     public void deletarAula(Long idAula) {
-        AulaPersonal aula = aulaPersonalRepository.findById(idAula)
-                .orElseThrow(() -> new AulaPersonalNaoEncontradaException(idAula));
-
-        if (LocalDateTime.now().plusHours(1).isAfter(aula.getDataHoraAula())) {
-            throw new ErroAoDesmarcarAulaException();
-        }
-
+        AulaPersonal aula =validarPossibilidadeDeDesmarcarAula(idAula);
         aulaPersonalRepository.delete(aula);
     }
 
@@ -74,5 +67,16 @@ public class AulaPersonalServiceImpl implements AulaPersonalService {
     private Professor validarProfessor (Long idProfessor) {
         return professorRepository.buscaProfessorAtivoPorId(idProfessor)
                 .orElseThrow(() -> new ProfessorNaoEncontradoException(idProfessor));
+    }
+
+    private AulaPersonal validarPossibilidadeDeDesmarcarAula(Long idAula) {
+        AulaPersonal aula = aulaPersonalRepository.findById(idAula)
+                .orElseThrow(() -> new AulaPersonalNaoEncontradaException(idAula));
+
+        if (LocalDateTime.now().plusHours(1).isAfter(aula.getDataHoraAula())) {
+            throw new ErroAoDesmarcarAulaException();
+        }
+
+        return aula;
     }
 }
