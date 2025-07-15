@@ -3,7 +3,6 @@ package com.api_academia.controller;
 import com.api_academia.dto.ProgressoDTO;
 import com.api_academia.service.ProgressoService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
