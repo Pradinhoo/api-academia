@@ -12,7 +12,10 @@ API REST para gerenciamento de academias desenvolvida em Java com Spring Boot. P
 - PostgreSQL
 - Maven
 - Spring Security 
-- Swagger/OpenAPI 
+- Swagger/OpenAPI
+- JUnit
+- Mockito
+- Docker
 
 ---
 
@@ -70,20 +73,10 @@ mvn clean spring-boot:run
 - `GET /alunos` - Listar alunos
 - `POST /alunos` - Criar novo aluno
 - `GET /alunos/{id}` - Buscar aluno por ID
-- `PUT /alunos/{id}` - Atualizar aluno
+- `PATCH /alunos/{id}/atualizar-dados ` - Atualizar aluno
 - `DELETE /alunos/{id}` - Deletar aluno
 
 _Similar para professores, treinos e exercícios._
-
----
-
-## Melhorias sugeridas
-
-- Implementar autenticação e autorização (ex: Spring Security + JWT)
-- Validar dados de entrada com Bean Validation (javax.validation)
-- Documentar API com Swagger/OpenAPI
-- Implementar testes unitários e de integração
-- Criar tratamento global para exceções
 
 ---
 
